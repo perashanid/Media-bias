@@ -23,18 +23,18 @@ if __name__ == '__main__':
     port = int(os.getenv('FLASK_PORT', 5000))
     debug = False  # Disable debug mode to avoid reloader issues
     
-    print(f"🚀 Starting Flask backend on http://{host}:{port}")
-    print("🔧 API endpoints available at:")
+    print(f"Starting Flask backend on http://{host}:{port}")
+    print("API endpoints available at:")
     print(f"   - Health check: http://{host}:{port}/health")
     print(f"   - Articles: http://{host}:{port}/api/articles")
     print(f"   - Statistics: http://{host}:{port}/api/statistics/overview")
     print(f"   - Manual scraper: http://{host}:{port}/api/scrape/manual")
-    print("💡 Press Ctrl+C to stop the server")
+    print("Press Ctrl+C to stop the server")
     
     try:
         app.run(host=host, port=port, debug=debug, use_reloader=False, threaded=True)
     except KeyboardInterrupt:
-        print("\n🛑 Backend server stopped")
+        print("\nBackend server stopped")
     except Exception as e:
-        print(f"❌ Backend error: {e}")
+        print(f"Backend error: {e}")
         sys.exit(1)

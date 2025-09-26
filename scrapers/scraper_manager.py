@@ -67,6 +67,10 @@ class ScraperManager:
             logger.error(f"Failed to scrape from {source_name}: {e}")
             return []
     
+    def scrape_source(self, source_name: str, limit: int = 20) -> List[Article]:
+        """Alias for scrape_single_source for backward compatibility"""
+        return self.scrape_single_source(source_name, limit)
+    
     def get_available_sources(self) -> List[str]:
         """Get list of available news sources"""
         return list(self.scrapers.keys())

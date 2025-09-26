@@ -587,6 +587,25 @@ const ComparisonView: React.FC = () => {
                   Published: {new Date(article.publication_date).toLocaleDateString()}
                 </Typography>
 
+                {/* Article Content Preview */}
+                <Card variant="outlined" sx={{ mb: 2, bgcolor: 'grey.50' }}>
+                  <CardContent sx={{ py: 1 }}>
+                    <Typography variant="caption" color="text.secondary" gutterBottom>
+                      Content Preview (used for comparison):
+                    </Typography>
+                    <Typography variant="body2" sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 4,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      fontSize: '0.875rem',
+                      lineHeight: 1.4
+                    }}>
+                      {article.content || 'Content not available'}
+                    </Typography>
+                  </CardContent>
+                </Card>
+
                 {article.bias_scores && (
                   <BiasScoreCard biasScore={article.bias_scores} showDetails={false} />
                 )}
