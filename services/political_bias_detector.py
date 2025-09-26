@@ -109,9 +109,9 @@ class PoliticalBiasDetector:
         if not text or not text.strip():
             return 0.0
         
-        if language == 'bengali':
+        if language in ['bengali', 'bn']:
             return self._analyze_bengali_political_bias(text)
-        elif language == 'english':
+        elif language in ['english', 'en']:
             return self._analyze_english_political_bias(text)
         else:
             # Try both languages and average
@@ -207,7 +207,7 @@ class PoliticalBiasDetector:
         Returns:
             Score between 0 (neutral) and 1 (highly loaded)
         """
-        if language == 'bengali':
+        if language in ['bengali', 'bn']:
             tokens = self.bengali_preprocessor.tokenize_bengali(text)
             loaded_terms = self.loaded_terms['bengali']
         else:

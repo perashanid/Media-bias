@@ -14,10 +14,12 @@ import {
 } from '@mui/material';
 import { Analytics, Clear } from '@mui/icons-material';
 import { biasApi } from '../services/api';
+import { useDashboard } from '../contexts/DashboardContext';
 import { BiasAnalysisResult } from '../types/Article';
 import BiasScoreCard from '../components/BiasScoreCard';
 
 const BiasAnalyzer: React.FC = () => {
+  const { triggerRefresh } = useDashboard();
   const [text, setText] = useState('');
   const [language, setLanguage] = useState('');
   const [result, setResult] = useState<BiasAnalysisResult | null>(null);
@@ -36,6 +38,7 @@ const BiasAnalyzer: React.FC = () => {
 
       const analysisResult = await biasApi.analyzeText(text, language || undefined);
       setResult(analysisResult);
+      triggerRefresh(); // Refresh dashboard after analysis
 
     } catch (err) {
       setError('Failed to analyze text. Please try again.');

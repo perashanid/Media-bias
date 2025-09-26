@@ -535,6 +535,28 @@ const ComparisonView: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Comparison Methodology */}
+      <Card sx={{ mb: 3, bgcolor: 'info.light', color: 'info.contrastText' }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
+            🔍 How Articles Were Compared
+          </Typography>
+          <Typography variant="body2" paragraph>
+            Our AI system analyzed the full text content of each article to identify:
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, mb: 2 }}>
+            <li>Similar topics and keywords</li>
+            <li>Sentiment and emotional tone differences</li>
+            <li>Political bias indicators</li>
+            <li>Factual vs opinion content ratios</li>
+            <li>Language patterns and word choices</li>
+          </Box>
+          <Typography variant="body2">
+            The comparison text shown above for each article represents the actual content that was processed and analyzed.
+          </Typography>
+        </CardContent>
+      </Card>
+
       {/* Key Differences */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
@@ -588,20 +610,25 @@ const ComparisonView: React.FC = () => {
                 </Typography>
 
                 {/* Article Content Preview */}
-                <Card variant="outlined" sx={{ mb: 2, bgcolor: 'grey.50' }}>
-                  <CardContent sx={{ py: 1 }}>
-                    <Typography variant="caption" color="text.secondary" gutterBottom>
-                      Content Preview (used for comparison):
+                <Card variant="outlined" sx={{ mb: 2, bgcolor: 'grey.50', border: '2px solid', borderColor: 'primary.light' }}>
+                  <CardContent sx={{ py: 2 }}>
+                    <Typography variant="subtitle2" color="primary" gutterBottom sx={{ fontWeight: 'bold' }}>
+                      📄 Article Content (Used for Comparison Analysis)
                     </Typography>
                     <Typography variant="body2" sx={{
                       display: '-webkit-box',
-                      WebkitLineClamp: 4,
+                      WebkitLineClamp: 6,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                       fontSize: '0.875rem',
-                      lineHeight: 1.4
+                      lineHeight: 1.5,
+                      fontStyle: 'italic',
+                      color: 'text.primary'
                     }}>
                       {article.content || 'Content not available'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      This text was analyzed for bias patterns, sentiment, and compared with other sources covering the same story.
                     </Typography>
                   </CardContent>
                 </Card>

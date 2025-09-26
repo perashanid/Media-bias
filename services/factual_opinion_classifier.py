@@ -112,9 +112,9 @@ class FactualOpinionClassifier:
         if not text or not text.strip():
             return 0.5  # Neutral if no text
         
-        if language == 'bengali':
+        if language in ['bengali', 'bn']:
             return self._analyze_bengali_factual_opinion(text)
-        elif language == 'english':
+        elif language in ['english', 'en']:
             return self._analyze_english_factual_opinion(text)
         else:
             # Try both languages and average
@@ -255,7 +255,7 @@ class FactualOpinionClassifier:
         Returns:
             Score between 0 (no speculation) and 1 (highly speculative)
         """
-        if language == 'bengali':
+        if language in ['bengali', 'bn']:
             speculation_words = self.opinion_indicators['bengali']['speculation_words']
             tokens = self.bengali_preprocessor.tokenize_bengali(text)
         else:

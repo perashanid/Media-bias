@@ -19,6 +19,7 @@ import {
   Grid,
 } from '@mui/material';
 import { scrapingApi } from '../services/api';
+import { useDashboard } from '../contexts/DashboardContext';
 
 interface ScrapingResult {
   success: boolean;
@@ -44,6 +45,7 @@ interface ScrapingResult {
 }
 
 const ManualScraper: React.FC = () => {
+  const { triggerRefresh } = useDashboard();
   const [url, setUrl] = useState('');
   const [selectedSource, setSelectedSource] = useState('');
   const [availableSources, setAvailableSources] = useState<string[]>([]);
@@ -79,6 +81,9 @@ const ManualScraper: React.FC = () => {
     try {
       const data = await scrapingApi.manualScrape({ url: url.trim() });
       setResult(data);
+      if (data.success) {
+        triggerRefresh(); // Refresh dashboard after successful scraping
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to scrape URL');
     } finally {
@@ -99,8 +104,29 @@ const ManualScraper: React.FC = () => {
     try {
       const data = await scrapingApi.manualScrape({ source: selectedSource });
       setResult(data);
+      if (data.success) {
+        triggerRefresh(); // Refresh dashboard after successful scraping
+      }
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to scrape source');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBatchScrape = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const data = await scrapingApi.batchScrape({ max_articles_per_source: 5 });
+      setResult(data);
+      if (data.success) {
+        triggerRefresh(); // Refresh dashboard after successful scraping
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to batch scrape');
     } finally {
       setLoading(false);
     }
@@ -207,15 +233,26 @@ const ManualScraper: React.FC = () => {
                 </Select>
               </FormControl>
             </Box>
-            <Button
-              variant="contained"
-              onClick={handleSourceScrape}
-              disabled={loading || !selectedSource}
-              startIcon={loading ? <CircularProgress size={20} /> : null}
-              fullWidth
-            >
-              {loading ? 'Scraping...' : 'Scrape Latest Articles'}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                onClick={handleSourceScrape}
+                disabled={loading || !selectedSource}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+                sx={{ flex: 1 }}
+              >
+                {loading ? 'Scraping...' : 'Scrape Source'}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleBatchScrape}
+                disabled={loading}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+                sx={{ flex: 1 }}
+              >
+                {loading ? 'Scraping...' : 'Scrape All'}
+              </Button>
+            </Box>
           </Paper>
         </Grid>
       </Grid>
@@ -260,6 +297,23 @@ const ManualScraper: React.FC = () => {
                 <Typography variant="body2" color="text.secondary">
                   <strong>Articles Scraped:</strong> {result.articles_count}
                 </Typography>
+              )}
+              {result.analyzed_count && (
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Articles Analyzed:</strong> {result.analyzed_count}
+                </Typography>
+              )}
+              {result.source_results && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    <strong>Source Results:</strong>
+                  </Typography>
+                  {Object.entries(result.source_results).map(([source, stats]: [string, any]) => (
+                    <Typography key={source} variant="body2" color="text.secondary">
+                      {source}: {stats.scraped} scraped, {stats.stored} stored, {stats.analyzed} analyzed
+                    </Typography>
+                  ))}
+                </Box>
               )}
             </Box>
           )}

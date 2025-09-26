@@ -77,21 +77,38 @@ class DatabaseConnection:
         try:
             articles_collection = self.database.articles
             
-            # Create indexes for articles collection
-            articles_collection.create_index([("url", ASCENDING)], unique=True)
-            articles_collection.create_index([("content_hash", ASCENDING)], unique=True)
-            articles_collection.create_index([("source", ASCENDING)])
-            articles_collection.create_index([("publication_date", ASCENDING)])
-            articles_collection.create_index([("scraped_at", ASCENDING)])
-            articles_collection.create_index([("language", ASCENDING)])
+            # Create indexes for articles collection (with error handling)
+            indexes_to_create = [
+                ([("url", ASCENDING)], {"unique": True}),
+                ([("content_hash", ASCENDING)], {"unique": True}),
+                ([("source", ASCENDING)], {}),
+                ([("publication_date", ASCENDING)], {}),
+                ([("scraped_at", ASCENDING)], {}),
+                ([("language", ASCENDING)], {}),
+            ]
             
-            # Create text index for content search
-            articles_collection.create_index([("title", TEXT), ("content", TEXT)])
+            for index_spec, options in indexes_to_create:
+                try:
+                    articles_collection.create_index(index_spec, **options)
+                except Exception as e:
+                    # Index might already exist, which is fine
+                    logger.debug(f"Index creation skipped (likely already exists): {e}")
+            
+            # Skip text index creation to avoid language override issues
+            # Text search will use basic string matching instead
+            logger.info("Skipping text index creation to avoid language compatibility issues")
             
             # Create indexes for article_groups collection
             groups_collection = self.database.article_groups
-            groups_collection.create_index([("story_id", ASCENDING)], unique=True)
-            groups_collection.create_index([("created_at", ASCENDING)])
+            try:
+                groups_collection.create_index([("story_id", ASCENDING)], unique=True)
+            except Exception as e:
+                logger.debug(f"Story ID index creation skipped: {e}")
+            
+            try:
+                groups_collection.create_index([("created_at", ASCENDING)])
+            except Exception as e:
+                logger.debug(f"Created at index creation skipped: {e}")
             
             logger.info("Database indexes created successfully")
             

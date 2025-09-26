@@ -186,7 +186,8 @@ class BaseScraper(ABC):
                 source=source,
                 publication_date=datetime.now(),  # Default to now since we can't reliably extract date
                 scraped_at=datetime.now(),
-                language=language
+                language=language,
+                author=None  # Default to None for generic scraping
             )
             
         except Exception as e:
@@ -213,6 +214,7 @@ class BaseScraper(ABC):
             return 'unknown'
         
         bengali_ratio = bengali_chars / total_chars
+        # Use full language names for compatibility
         return 'bengali' if bengali_ratio > 0.3 else 'english'
     
     def _clean_text(self, text: str) -> str:

@@ -153,6 +153,11 @@ export const scrapingApi = {
     const response = await api.post('/scrape/test-url', { url });
     return response.data;
   },
+
+  batchScrape: async (params: { max_articles_per_source?: number }) => {
+    const response = await api.post('/scrape/batch', params);
+    return response.data;
+  },
 };
 
 // Health check

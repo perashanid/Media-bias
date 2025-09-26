@@ -122,11 +122,28 @@ class ScrapingOrchestrator:
                         # Store articles
                         storage_result = self.storage_service.store_articles_batch(articles)
                         
+                        # Analyze bias for newly stored articles if enabled
+                        analyzed_count = 0
+                        if self.config['auto_analyze_bias'] and storage_result['stored_ids']:
+                            for article_id in storage_result['stored_ids']:
+                                try:
+                                    article = self.storage_service.get_article_by_id(article_id)
+                                    if article:
+                                        bias_scores = self.bias_analyzer.analyze_article_bias(article)
+                                        success = self.storage_service.update_article_bias_scores(
+                                            article_id, bias_scores.to_dict()
+                                        )
+                                        if success:
+                                            analyzed_count += 1
+                                except Exception as e:
+                                    logger.warning(f"Failed to analyze bias for article {article_id}: {e}")
+                        
                         results['sources'][source_name] = {
                             'scraped': len(articles),
                             'stored': storage_result['stored'],
                             'duplicates': storage_result['duplicates'],
-                            'errors': storage_result['errors']
+                            'errors': storage_result['errors'],
+                            'analyzed': analyzed_count
                         }
                         
                         results['total_articles'] += len(articles)

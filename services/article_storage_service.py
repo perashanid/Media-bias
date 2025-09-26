@@ -147,10 +147,14 @@ class ArticleStorageService:
             return []
     
     def search_articles(self, query: str, limit: int = 50) -> List[Article]:
-        """Search articles by text content"""
+        """Search articles by text content using regex since text index is disabled"""
         try:
+            # Use regex search instead of text index
             cursor = self.articles_collection.find({
-                '$text': {'$search': query}
+                '$or': [
+                    {'title': {'$regex': query, '$options': 'i'}},
+                    {'content': {'$regex': query, '$options': 'i'}}
+                ]
             }).limit(limit).sort('publication_date', -1)
             
             articles = []

@@ -79,9 +79,9 @@ class SentimentAnalyzer:
         if not text or not text.strip():
             return 0.0
         
-        if language == 'bengali':
+        if language in ['bengali', 'bn']:
             return self._analyze_bengali_sentiment(text)
-        elif language == 'english':
+        elif language in ['english', 'en']:
             return self._analyze_english_sentiment(text)
         else:
             # Try both and take average
@@ -211,7 +211,7 @@ class SentimentAnalyzer:
     
     def detect_emotional_intensity(self, text: str, language: str) -> float:
         """Detect emotional intensity regardless of polarity (0-1 scale)"""
-        if language == 'bengali':
+        if language in ['bengali', 'bn']:
             tokens = self.bengali_preprocessor.tokenize_bengali(text)
             emotional_words = self.bengali_positive_words.union(self.bengali_negative_words)
         else:
