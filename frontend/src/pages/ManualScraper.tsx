@@ -1,0 +1,352 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Paper,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+  CircularProgress,
+  Card,
+  CardContent,
+  Divider,
+  Chip,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Grid,
+} from '@mui/material';
+import { scrapingApi } from '../services/api';
+
+interface ScrapingResult {
+  success: boolean;
+  message?: string;
+  article_id?: string;
+  title?: string;
+  source?: string;
+  articles_count?: number;
+  article?: {
+    title: string;
+    source: string;
+    content_preview: string;
+    publication_date?: string;
+    language: string;
+  };
+  bias_analysis?: {
+    political_bias: number;
+    sentiment_score: number;
+    factual_vs_opinion: number;
+    overall_bias_score: number;
+  };
+  error?: string;
+}
+
+const ManualScraper: React.FC = () => {
+  const [url, setUrl] = useState('');
+  const [selectedSource, setSelectedSource] = useState('');
+  const [availableSources, setAvailableSources] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [testLoading, setTestLoading] = useState(false);
+  const [result, setResult] = useState<ScrapingResult | null>(null);
+  const [testResult, setTestResult] = useState<ScrapingResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadAvailableSources();
+  }, []);
+
+  const loadAvailableSources = async () => {
+    try {
+      const data = await scrapingApi.getAvailableSources();
+      setAvailableSources(data.sources || []);
+    } catch (err) {
+      console.error('Failed to load sources:', err);
+    }
+  };
+
+  const handleUrlScrape = async () => {
+    if (!url.trim()) {
+      setError('Please enter a URL');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const data = await scrapingApi.manualScrape({ url: url.trim() });
+      setResult(data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to scrape URL');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSourceScrape = async () => {
+    if (!selectedSource) {
+      setError('Please select a source');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const data = await scrapingApi.manualScrape({ source: selectedSource });
+      setResult(data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to scrape source');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTestUrl = async () => {
+    if (!url.trim()) {
+      setError('Please enter a URL');
+      return;
+    }
+
+    setTestLoading(true);
+    setError(null);
+    setTestResult(null);
+
+    try {
+      const data = await scrapingApi.testUrl(url.trim());
+      setTestResult(data);
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to test URL');
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
+  const getBiasLabel = (score: number) => {
+    if (score < 0.4) return { label: 'Left-leaning', color: 'primary' as const };
+    if (score > 0.6) return { label: 'Right-leaning', color: 'secondary' as const };
+    return { label: 'Center', color: 'default' as const };
+  };
+
+  const getSentimentLabel = (score: number) => {
+    if (score < 0.4) return { label: 'Negative', color: 'error' as const };
+    if (score > 0.6) return { label: 'Positive', color: 'success' as const };
+    return { label: 'Neutral', color: 'default' as const };
+  };
+
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Manual Article Scraper
+      </Typography>
+      <Typography variant="body1" color="text.secondary" paragraph>
+        Scrape and analyze articles manually by URL or from available news sources.
+      </Typography>
+
+      <Grid container spacing={3}>
+        {/* URL Scraping Section */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Scrape by URL
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Article URL"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="https://example.com/article"
+                variant="outlined"
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Button
+                variant="contained"
+                onClick={handleUrlScrape}
+                disabled={loading || !url.trim()}
+                startIcon={loading ? <CircularProgress size={20} /> : null}
+              >
+                {loading ? 'Scraping...' : 'Scrape & Store'}
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleTestUrl}
+                disabled={testLoading || !url.trim()}
+                startIcon={testLoading ? <CircularProgress size={20} /> : null}
+              >
+                {testLoading ? 'Testing...' : 'Test Only'}
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Source Scraping Section */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Scrape by Source
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              <FormControl fullWidth>
+                <InputLabel>News Source</InputLabel>
+                <Select
+                  value={selectedSource}
+                  onChange={(e) => setSelectedSource(e.target.value)}
+                  label="News Source"
+                >
+                  {availableSources.map((source) => (
+                    <MenuItem key={source} value={source}>
+                      {source}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={handleSourceScrape}
+              disabled={loading || !selectedSource}
+              startIcon={loading ? <CircularProgress size={20} /> : null}
+              fullWidth
+            >
+              {loading ? 'Scraping...' : 'Scrape Latest Articles'}
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      {/* Error Display */}
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* Scraping Result */}
+      {result && (
+        <Paper sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            Scraping Result
+          </Typography>
+          {result.success ? (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {result.message}
+            </Alert>
+          ) : (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {result.error || 'Scraping failed'}
+            </Alert>
+          )}
+          
+          {result.success && result.title && (
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                <strong>Title:</strong> {result.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Source:</strong> {result.source}
+              </Typography>
+              {result.article_id && (
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Article ID:</strong> {result.article_id}
+                </Typography>
+              )}
+              {result.articles_count && (
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Articles Scraped:</strong> {result.articles_count}
+                </Typography>
+              )}
+            </Box>
+          )}
+        </Paper>
+      )}
+
+      {/* Test Result */}
+      {testResult && (
+        <Paper sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            URL Test Result
+          </Typography>
+          {testResult.success ? (
+            <>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                Article content extracted successfully (not stored)
+              </Alert>
+              
+              {testResult.article && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {testResult.article.title}
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Chip 
+                        label={testResult.article.source} 
+                        size="small" 
+                        sx={{ mr: 1 }} 
+                      />
+                      <Chip 
+                        label={testResult.article.language} 
+                        size="small" 
+                        color="primary" 
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" paragraph>
+                      {testResult.article.content_preview}
+                    </Typography>
+                    {testResult.article.publication_date && (
+                      <Typography variant="caption" color="text.secondary">
+                        Published: {new Date(testResult.article.publication_date).toLocaleDateString()}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {testResult.bias_analysis && (
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Bias Analysis Preview
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      <Chip
+                        label={`Political: ${getBiasLabel(testResult.bias_analysis.political_bias).label}`}
+                        color={getBiasLabel(testResult.bias_analysis.political_bias).color}
+                        size="small"
+                      />
+                      <Chip
+                        label={`Sentiment: ${getSentimentLabel(testResult.bias_analysis.sentiment_score).label}`}
+                        color={getSentimentLabel(testResult.bias_analysis.sentiment_score).color}
+                        size="small"
+                      />
+                      <Chip
+                        label={`Factual: ${(testResult.bias_analysis.factual_vs_opinion * 100).toFixed(0)}%`}
+                        color="info"
+                        size="small"
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Overall Bias Score: {(testResult.bias_analysis.overall_bias_score * 100).toFixed(1)}%
+                    </Typography>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <Alert severity="error">
+              {testResult.error || 'URL test failed'}
+            </Alert>
+          )}
+        </Paper>
+      )}
+    </Container>
+  );
+};
+
+export default ManualScraper;

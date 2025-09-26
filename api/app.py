@@ -1,0 +1,593 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from datetime import datetime, timedelta
+import logging
+import os
+from typing import Dict, Any, List, Optional
+
+# Import services
+from services.article_storage_service import ArticleStorageService
+from services.bias_analyzer import BiasAnalyzer
+from services.article_comparator import ArticleComparator
+from scrapers.scraper_manager import ScraperManager
+from config.database import initialize_database
+
+# Import blueprints
+from api.routes.articles import articles_bp
+from api.routes.bias import bias_bp
+from api.routes.comparison import comparison_bp
+from api.routes.statistics import statistics_bp
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS for frontend access
+
+# Register blueprints
+app.register_blueprint(articles_bp)
+app.register_blueprint(bias_bp)
+app.register_blueprint(comparison_bp)
+app.register_blueprint(statistics_bp)
+
+# Initialize services
+storage_service = ArticleStorageService()
+bias_analyzer = BiasAnalyzer()
+article_comparator = ArticleComparator()
+scraper_manager = ScraperManager()
+
+
+def initialize_app():
+    """Initialize database and services"""
+    try:
+        initialize_database()
+        logger.info("Application initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize application: {e}")
+
+# Initialize app on startup
+initialize_app()
+
+
+# Error handlers
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({'error': 'Bad request', 'message': str(error)}), 400
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({'error': 'Not found', 'message': 'Resource not found'}), 404
+
+
+@app.errorhandler(500)
+def internal_error(error):
+    return jsonify({'error': 'Internal server error', 'message': 'An unexpected error occurred'}), 500
+
+
+# Health check endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Health check endpoint"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now().isoformat(),
+        'version': '1.0.0'
+    })
+
+
+# Article endpoints
+@app.route('/api/articles', methods=['GET'])
+def get_articles():
+    """Get articles with optional filtering"""
+    try:
+        # Get query parameters
+        source = request.args.get('source')
+        limit = int(request.args.get('limit', 50))
+        skip = int(request.args.get('skip', 0))
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        
+        # Validate limit
+        if limit > 200:
+            limit = 200
+        
+        articles = []
+        
+        if source:
+            # Get articles by source
+            articles = storage_service.get_articles_by_source(source, limit, skip)
+        elif start_date and end_date:
+            # Get articles by date range
+            try:
+                start_dt = datetime.fromisoformat(start_date)
+                end_dt = datetime.fromisoformat(end_date)
+                articles = storage_service.get_articles_by_date_range(start_dt, end_dt, limit)
+            except ValueError:
+                return jsonify({'error': 'Invalid date format. Use ISO format (YYYY-MM-DD)'}), 400
+        else:
+            # Get recent articles (default)
+            end_dt = datetime.now()
+            start_dt = end_dt - timedelta(days=7)
+            articles = storage_service.get_articles_by_date_range(start_dt, end_dt, limit)
+        
+        # Convert articles to JSON
+        articles_json = []
+        for article in articles:
+            article_dict = article.to_dict()
+            # Convert ObjectId to string for JSON serialization
+            if '_id' in article_dict:
+                article_dict['id'] = str(article_dict.pop('_id'))
+            articles_json.append(article_dict)
+        
+        return jsonify({
+            'articles': articles_json,
+            'count': len(articles_json),
+            'limit': limit,
+            'skip': skip
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get articles: {e}")
+        return jsonify({'error': 'Failed to retrieve articles'}), 500
+
+
+@app.route('/api/articles/<article_id>', methods=['GET'])
+def get_article(article_id):
+    """Get a specific article by ID"""
+    try:
+        article = storage_service.get_article_by_id(article_id)
+        
+        if not article:
+            return jsonify({'error': 'Article not found'}), 404
+        
+        article_dict = article.to_dict()
+        if '_id' in article_dict:
+            article_dict['id'] = str(article_dict.pop('_id'))
+        
+        return jsonify(article_dict)
+        
+    except Exception as e:
+        logger.error(f"Failed to get article {article_id}: {e}")
+        return jsonify({'error': 'Failed to retrieve article'}), 500
+
+
+@app.route('/api/articles/search', methods=['GET'])
+def search_articles():
+    """Search articles by text query"""
+    try:
+        query = request.args.get('q')
+        limit = int(request.args.get('limit', 50))
+        
+        if not query:
+            return jsonify({'error': 'Query parameter "q" is required'}), 400
+        
+        articles = storage_service.search_articles(query, limit)
+        
+        articles_json = []
+        for article in articles:
+            article_dict = article.to_dict()
+            if '_id' in article_dict:
+                article_dict['id'] = str(article_dict.pop('_id'))
+            articles_json.append(article_dict)
+        
+        return jsonify({
+            'articles': articles_json,
+            'count': len(articles_json),
+            'query': query
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to search articles: {e}")
+        return jsonify({'error': 'Failed to search articles'}), 500
+
+
+# Bias analysis endpoints
+@app.route('/api/articles/<article_id>/bias', methods=['GET'])
+def get_article_bias(article_id):
+    """Get bias analysis for a specific article"""
+    try:
+        article = storage_service.get_article_by_id(article_id)
+        
+        if not article:
+            return jsonify({'error': 'Article not found'}), 404
+        
+        # Get detailed bias analysis
+        detailed_analysis = bias_analyzer.get_detailed_analysis(article)
+        
+        return jsonify(detailed_analysis)
+        
+    except Exception as e:
+        logger.error(f"Failed to get bias analysis for article {article_id}: {e}")
+        return jsonify({'error': 'Failed to analyze article bias'}), 500
+
+
+@app.route('/api/articles/<article_id>/bias', methods=['POST'])
+def analyze_article_bias(article_id):
+    """Analyze or re-analyze bias for a specific article"""
+    try:
+        article = storage_service.get_article_by_id(article_id)
+        
+        if not article:
+            return jsonify({'error': 'Article not found'}), 404
+        
+        # Perform bias analysis
+        bias_scores = bias_analyzer.analyze_article_bias(article)
+        
+        # Update article with bias scores
+        bias_scores_dict = bias_scores.to_dict()
+        success = storage_service.update_article_bias_scores(article_id, bias_scores_dict)
+        
+        if success:
+            return jsonify({
+                'message': 'Bias analysis completed',
+                'bias_scores': bias_scores_dict
+            })
+        else:
+            return jsonify({'error': 'Failed to update bias scores'}), 500
+        
+    except Exception as e:
+        logger.error(f"Failed to analyze bias for article {article_id}: {e}")
+        return jsonify({'error': 'Failed to analyze article bias'}), 500
+
+
+@app.route('/api/bias/analyze-text', methods=['POST'])
+def analyze_text_bias():
+    """Analyze bias for arbitrary text (for testing)"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'text' not in data:
+            return jsonify({'error': 'Text field is required'}), 400
+        
+        text = data['text']
+        language = data.get('language')  # Optional
+        
+        # Analyze text
+        analysis = bias_analyzer.analyze_text_sample(text, language)
+        
+        return jsonify(analysis)
+        
+    except Exception as e:
+        logger.error(f"Failed to analyze text bias: {e}")
+        return jsonify({'error': 'Failed to analyze text bias'}), 500
+
+
+# Article comparison endpoints
+@app.route('/api/articles/<article_id>/similar', methods=['GET'])
+def get_similar_articles(article_id):
+    """Get articles similar to the specified article"""
+    try:
+        target_article = storage_service.get_article_by_id(article_id)
+        
+        if not target_article:
+            return jsonify({'error': 'Article not found'}), 404
+        
+        # Get candidate articles from recent time period
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=7)
+        candidate_articles = storage_service.get_articles_by_date_range(start_date, end_date, 500)
+        
+        # Find related articles
+        threshold = float(request.args.get('threshold', 0.3))
+        related_articles = article_comparator.find_related_articles(
+            target_article, candidate_articles, threshold
+        )
+        
+        # Convert to JSON
+        related_json = []
+        for article in related_articles:
+            article_dict = article.to_dict()
+            if '_id' in article_dict:
+                article_dict['id'] = str(article_dict.pop('_id'))
+            related_json.append(article_dict)
+        
+        return jsonify({
+            'target_article_id': article_id,
+            'related_articles': related_json,
+            'count': len(related_json),
+            'threshold': threshold
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to find similar articles for {article_id}: {e}")
+        return jsonify({'error': 'Failed to find similar articles'}), 500
+
+
+@app.route('/api/articles/<article_id>/comparison', methods=['GET'])
+def get_article_comparison(article_id):
+    """Get bias comparison report for an article and its related articles"""
+    try:
+        target_article = storage_service.get_article_by_id(article_id)
+        
+        if not target_article:
+            return jsonify({'error': 'Article not found'}), 404
+        
+        # Get candidate articles
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=3)  # Shorter window for comparison
+        candidate_articles = storage_service.get_articles_by_date_range(start_date, end_date, 200)
+        
+        # Find related articles
+        related_articles = article_comparator.find_related_articles(
+            target_article, candidate_articles, 0.4  # Higher threshold for comparison
+        )
+        
+        if not related_articles:
+            return jsonify({
+                'message': 'No related articles found for comparison',
+                'target_article_id': article_id
+            })
+        
+        # Include target article in comparison
+        all_articles = [target_article] + related_articles
+        
+        # Generate comparison report
+        comparison_report = article_comparator.generate_comparison_report(all_articles)
+        
+        if not comparison_report:
+            return jsonify({'error': 'Failed to generate comparison report'}), 500
+        
+        # Convert to JSON
+        report_dict = comparison_report.to_dict()
+        
+        # Convert article IDs
+        for i, article in enumerate(report_dict['articles']):
+            if '_id' in article:
+                article['id'] = str(article.pop('_id'))
+        
+        return jsonify(report_dict)
+        
+    except Exception as e:
+        logger.error(f"Failed to generate comparison for article {article_id}: {e}")
+        return jsonify({'error': 'Failed to generate comparison report'}), 500
+
+
+# Statistics and dashboard endpoints
+@app.route('/api/statistics/overview', methods=['GET'])
+def get_overview_statistics():
+    """Get overview statistics for dashboard"""
+    try:
+        # Get storage statistics
+        storage_stats = storage_service.get_storage_statistics()
+        
+        # Get recent articles for analysis
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=7)
+        recent_articles = storage_service.get_articles_by_date_range(start_date, end_date, 100)
+        
+        # Calculate bias distribution
+        bias_distribution = {'left': 0, 'center': 0, 'right': 0}
+        sentiment_distribution = {'positive': 0, 'neutral': 0, 'negative': 0}
+        
+        for article in recent_articles:
+            if hasattr(article, 'bias_scores') and article.bias_scores:
+                political_bias = getattr(article.bias_scores, 'political_bias', 0.5)
+                if political_bias < 0.4:
+                    bias_distribution['left'] += 1
+                elif political_bias > 0.6:
+                    bias_distribution['right'] += 1
+                else:
+                    bias_distribution['center'] += 1
+                
+                sentiment = getattr(article.bias_scores, 'sentiment_score', 0.5)
+                if sentiment < 0.4:
+                    sentiment_distribution['negative'] += 1
+                elif sentiment > 0.6:
+                    sentiment_distribution['positive'] += 1
+                else:
+                    sentiment_distribution['neutral'] += 1
+        
+        return jsonify({
+            'total_articles': storage_stats.get('total_articles', 0),
+            'analyzed_articles': storage_stats.get('analyzed_articles', 0),
+            'recent_articles': len(recent_articles),
+            'bias_distribution': bias_distribution,
+            'sentiment_distribution': sentiment_distribution,
+            'language_distribution': storage_stats.get('language_distribution', {}),
+            'source_counts': storage_service.get_article_count_by_source()
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get overview statistics: {e}")
+        return jsonify({'error': 'Failed to retrieve overview statistics'}), 500
+
+@app.route('/api/statistics/sources', methods=['GET'])
+def get_source_statistics():
+    """Get statistics by news source"""
+    try:
+        # Get article counts by source
+        source_counts = storage_service.get_article_count_by_source()
+        
+        # Get storage statistics
+        storage_stats = storage_service.get_storage_statistics()
+        
+        return jsonify({
+            'source_counts': source_counts,
+            'total_articles': storage_stats.get('total_articles', 0),
+            'analyzed_articles': storage_stats.get('analyzed_articles', 0),
+            'language_distribution': storage_stats.get('language_distribution', {}),
+            'recent_articles': storage_stats.get('recent_articles', 0)
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get source statistics: {e}")
+        return jsonify({'error': 'Failed to retrieve statistics'}), 500
+
+
+@app.route('/api/statistics/bias-comparison', methods=['GET'])
+def get_bias_comparison_statistics():
+    """Get bias comparison statistics across sources"""
+    try:
+        # Get recent articles grouped by source
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=30)  # Last 30 days
+        
+        articles = storage_service.get_articles_by_date_range(start_date, end_date, 1000)
+        
+        # Group articles by source
+        articles_by_source = {}
+        for article in articles:
+            source = article.source
+            if source not in articles_by_source:
+                articles_by_source[source] = []
+            articles_by_source[source].append(article)
+        
+        # Compare bias patterns across sources
+        source_comparison = article_comparator.compare_source_bias_patterns(articles_by_source)
+        
+        return jsonify({
+            'source_comparison': source_comparison,
+            'analysis_period': {
+                'start_date': start_date.isoformat(),
+                'end_date': end_date.isoformat()
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get bias comparison statistics: {e}")
+        return jsonify({'error': 'Failed to retrieve bias comparison statistics'}), 500
+
+
+# Scraping endpoints (for admin use)
+@app.route('/api/scrape/sources', methods=['GET'])
+def get_available_sources():
+    """Get list of available news sources for scraping"""
+    try:
+        sources = scraper_manager.get_available_sources()
+        scraper_info = scraper_manager.get_scraper_info()
+        
+        return jsonify({
+            'sources': sources,
+            'scraper_info': scraper_info
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get available sources: {e}")
+        return jsonify({'error': 'Failed to retrieve sources'}), 500
+
+
+@app.route('/api/scrape/manual', methods=['POST'])
+def manual_scrape():
+    """Manually scrape articles from a URL or source"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'Request body is required'}), 400
+        
+        url = data.get('url')
+        source = data.get('source')
+        
+        if url:
+            # Scrape single URL
+            from scrapers.base_scraper import BaseScraper
+            scraper = BaseScraper()
+            
+            try:
+                article = scraper.scrape_single_url(url)
+                if article:
+                    # Store the article
+                    stored_article = storage_service.store_article(article)
+                    
+                    # Analyze bias
+                    bias_scores = bias_analyzer.analyze_article_bias(stored_article)
+                    storage_service.update_article_bias_scores(stored_article.id, bias_scores.to_dict())
+                    
+                    return jsonify({
+                        'success': True,
+                        'message': 'Article scraped and analyzed successfully',
+                        'article_id': str(stored_article.id),
+                        'title': article.title,
+                        'source': article.source
+                    })
+                else:
+                    return jsonify({'error': 'Failed to scrape article from URL'}), 400
+                    
+            except Exception as e:
+                return jsonify({'error': f'Scraping failed: {str(e)}'}), 400
+        
+        elif source:
+            # Scrape from specific source
+            try:
+                scraped_articles = scraper_manager.scrape_source(source, limit=5)
+                
+                stored_count = 0
+                for article in scraped_articles:
+                    try:
+                        stored_article = storage_service.store_article(article)
+                        bias_scores = bias_analyzer.analyze_article_bias(stored_article)
+                        storage_service.update_article_bias_scores(stored_article.id, bias_scores.to_dict())
+                        stored_count += 1
+                    except Exception as e:
+                        logger.warning(f"Failed to store article: {e}")
+                        continue
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Scraped and stored {stored_count} articles from {source}',
+                    'articles_count': stored_count
+                })
+                
+            except Exception as e:
+                return jsonify({'error': f'Source scraping failed: {str(e)}'}), 400
+        
+        else:
+            return jsonify({'error': 'Either "url" or "source" parameter is required'}), 400
+        
+    except Exception as e:
+        logger.error(f"Manual scraping failed: {e}")
+        return jsonify({'error': 'Manual scraping failed'}), 500
+
+
+@app.route('/api/scrape/test-url', methods=['POST'])
+def test_scrape_url():
+    """Test scraping a URL without storing the article"""
+    try:
+        data = request.get_json()
+        
+        if not data or 'url' not in data:
+            return jsonify({'error': 'URL is required'}), 400
+        
+        url = data['url']
+        
+        from scrapers.base_scraper import BaseScraper
+        scraper = BaseScraper()
+        
+        try:
+            article = scraper.scrape_single_url(url)
+            if article:
+                # Analyze bias without storing
+                bias_scores = bias_analyzer.analyze_article_bias(article)
+                
+                return jsonify({
+                    'success': True,
+                    'article': {
+                        'title': article.title,
+                        'source': article.source,
+                        'content_preview': article.content[:500] + '...' if len(article.content) > 500 else article.content,
+                        'publication_date': article.publication_date.isoformat() if article.publication_date else None,
+                        'language': article.language
+                    },
+                    'bias_analysis': bias_scores.to_dict()
+                })
+            else:
+                return jsonify({'error': 'Failed to extract article content from URL'}), 400
+                
+        except Exception as e:
+            return jsonify({'error': f'Scraping test failed: {str(e)}'}), 400
+        
+    except Exception as e:
+        logger.error(f"URL test failed: {e}")
+        return jsonify({'error': 'URL test failed'}), 500
+
+
+if __name__ == '__main__':
+    # Get configuration from environment variables
+    host = os.getenv('FLASK_HOST', '0.0.0.0')
+    port = int(os.getenv('FLASK_PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    app.run(host=host, port=port, debug=debug)

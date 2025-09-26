@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # MongoDB for development
+  mongodb:
+    image: mongo:6.0
+    container_name: media-bias-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: media_bias_detector_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+    networks:
+      - media-bias-dev-network
+
+  # Redis for development
+  redis:
+    image: redis:7-alpine
+    container_name: media-bias-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - media-bias-dev-network
+
+  # Development app with hot reload
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: media-bias-app-dev
+    restart: unless-stopped
+    environment:
+      - MONGODB_HOST=mongodb
+      - MONGODB_PORT=27017
+      - MONGODB_DATABASE=media_bias_detector_dev
+      - MONGODB_USERNAME=admin
+      - MONGODB_PASSWORD=password
+      - FLASK_ENV=development
+      - FLASK_DEBUG=True
+      - FLASK_PORT=5000
+      - LOG_LEVEL=DEBUG
+    ports:
+      - "5000:5000"
+      - "3000:3000"  # React dev server
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/frontend/node_modules
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - media-bias-dev-network
+
+volumes:
+  mongodb_dev_data:
+    driver: local
+
+networks:
+  media-bias-dev-network:
+    driver: bridge

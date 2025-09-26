@@ -1,0 +1,12 @@
+{
+  "thresholds": {
+    "scraping_success_rate_min": 80.0,
+    "analysis_success_rate_min": 90.0,
+    "response_time_max_ms": 5000,
+    "error_count_max_per_hour": 50,
+    "database_size_max_gb": 10.0
+  },
+  "email_enabled": false,
+  "alert_retention_days": 30,
+  "metrics_retention_days": 7
+}
