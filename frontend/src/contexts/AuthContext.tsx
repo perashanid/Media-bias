@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     checkAuth();
-  }, []);
+  }, [apiCall]);
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {

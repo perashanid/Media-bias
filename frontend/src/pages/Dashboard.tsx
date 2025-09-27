@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid,
   Card,
@@ -122,7 +122,7 @@ const Dashboard: React.FC = () => {
     default_time_range: 7,
   });
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -167,11 +167,11 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated, user, preferences, getHiddenArticles]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [refreshTrigger, isAuthenticated, user]);
+  }, [refreshTrigger, fetchDashboardData]);
 
   const handleRefresh = async () => {
     setLastRefresh(new Date());

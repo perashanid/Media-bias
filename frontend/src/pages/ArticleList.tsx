@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -39,23 +39,16 @@ const ArticleList: React.FC = () => {
 
   const articlesPerPage = 12;
 
-  useEffect(() => {
-    fetchArticles();
-    if (isAuthenticated) {
-      loadHiddenArticles();
-    }
-  }, [page, sourceFilter, isAuthenticated]);
-
-  const loadHiddenArticles = async () => {
+  const loadHiddenArticles = useCallback(async () => {
     try {
       const hidden = await getHiddenArticles();
       setHiddenArticles(hidden);
     } catch (error) {
       console.error('Failed to load hidden articles:', error);
     }
-  };
+  }, [getHiddenArticles]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -82,7 +75,14 @@ const ArticleList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, sourceFilter, articlesPerPage]);
+
+  useEffect(() => {
+    fetchArticles();
+    if (isAuthenticated) {
+      loadHiddenArticles();
+    }
+  }, [fetchArticles, loadHiddenArticles, isAuthenticated]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
