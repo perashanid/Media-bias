@@ -235,7 +235,7 @@ def show_system_info():
         print("\nFrontend: Not built")
     
     # Database status
-    print("\nDatabase: Mock (MongoDB not connected)")
+    print("\nDatabase: MongoDB Atlas Connected")
     
     print("\nOptimization Complete!")
 

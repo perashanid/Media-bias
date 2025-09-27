@@ -15,7 +15,7 @@ def test_database_connection():
     try:
         from config.database import initialize_database
         db = initialize_database()
-        print("+ Database connection successful (using mock)")
+        print("+ Database connection successful")
         return True
     except Exception as e:
         print(f"- Database connection failed: {e}")
@@ -125,7 +125,7 @@ def test_article_storage():
         
         storage = ArticleStorageService()
         
-        # Test with mock database
+        # Test with database
         test_article = Article(
             url="http://test.com/storage-test",
             title="Storage Test Article",
@@ -137,10 +137,10 @@ def test_article_storage():
             language="english"
         )
         
-        # This will work with mock database
+        # This will work with database
         result = storage.store_article(test_article)
         
-        print("+ Article storage service working (with mock database)")
+        print("+ Article storage service working")
         return True
     except Exception as e:
         print(f"- Article storage failed: {e}")

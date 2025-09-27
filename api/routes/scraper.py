@@ -48,6 +48,8 @@ def manual_scrape():
         if url:
             # Scrape single URL
             try:
+                logger.info(f"Starting URL scraping: {url}")
+                
                 # Create a generic scraper instance for URL scraping
                 class GenericScraper(BaseScraper):
                     def __init__(self):
@@ -63,68 +65,112 @@ def manual_scrape():
                 article = scraper.scrape_single_url(url)
                 
                 if article:
+                    logger.info(f"Article scraped successfully: {article.title[:50]}...")
+                    
                     # Store the article
                     article_id = storage_service.store_article(article)
                     
                     if article_id:
-                        # Analyze bias
-                        bias_scores = bias_analyzer.analyze_article_bias(article)
-                        storage_service.update_article_bias_scores(article_id, bias_scores.to_dict())
+                        logger.info(f"Article stored with ID: {article_id}")
                         
-                        return jsonify({
-                            'success': True,
-                            'message': 'Article scraped and analyzed successfully',
-                            'article_id': article_id,
-                            'title': article.title,
-                            'source': article.source
-                        })
+                        # Analyze bias
+                        try:
+                            bias_scores = bias_analyzer.analyze_article_bias(article)
+                            storage_service.update_article_bias_scores(article_id, bias_scores.to_dict())
+                            logger.info(f"Bias analysis completed for article {article_id}")
+                            
+                            return jsonify({
+                                'success': True,
+                                'message': 'Article scraped and analyzed successfully',
+                                'article_id': article_id,
+                                'title': article.title,
+                                'source': article.source
+                            })
+                        except Exception as e:
+                            logger.warning(f"Bias analysis failed: {e}")
+                            return jsonify({
+                                'success': True,
+                                'message': 'Article scraped and stored successfully (bias analysis failed)',
+                                'article_id': article_id,
+                                'title': article.title,
+                                'source': article.source,
+                                'warning': f'Bias analysis failed: {str(e)}'
+                            })
                     else:
-                        return jsonify({'error': 'Failed to store article'}), 500
+                        logger.error("Failed to store article in database")
+                        return jsonify({'success': False, 'error': 'Failed to store article in database'}), 500
                 else:
-                    return jsonify({'error': 'Failed to scrape article from URL'}), 400
+                    logger.error("Failed to extract article content from URL")
+                    return jsonify({'success': False, 'error': 'Failed to scrape article from URL. The URL might not contain a valid article or the website structure is not supported.'}), 400
                     
             except Exception as e:
-                logger.error(f"URL scraping failed: {e}")
-                return jsonify({'error': f'Scraping failed: {str(e)}'}), 400
+                error_msg = f"URL scraping failed: {str(e)}"
+                logger.error(error_msg)
+                return jsonify({'success': False, 'error': error_msg}), 400
         
         elif source:
             # Scrape from specific source
             try:
+                logger.info(f"Starting scraping from source: {source}")
                 scraped_articles = scraper_manager.scrape_source(source, limit=10)
                 
+                logger.info(f"Scraped {len(scraped_articles)} articles from {source}")
+                
                 if not scraped_articles:
-                    return jsonify({'error': f'No articles found from source: {source}'}), 400
+                    return jsonify({
+                        'success': False,
+                        'error': f'No articles found from source: {source}. This could be due to network issues or changes in the website structure.'
+                    }), 400
                 
                 # Store articles and analyze bias
                 stored_count = 0
                 analyzed_count = 0
+                errors = []
                 
-                for article in scraped_articles:
+                for i, article in enumerate(scraped_articles):
                     try:
+                        logger.info(f"Storing article {i+1}/{len(scraped_articles)}: {article.title[:50]}...")
                         article_id = storage_service.store_article(article)
                         if article_id:
                             stored_count += 1
+                            logger.info(f"Article stored with ID: {article_id}")
+                            
                             try:
                                 bias_scores = bias_analyzer.analyze_article_bias(article)
                                 storage_service.update_article_bias_scores(article_id, bias_scores.to_dict())
                                 analyzed_count += 1
+                                logger.info(f"Bias analysis completed for article {article_id}")
                             except Exception as e:
-                                logger.warning(f"Failed to analyze bias for article {article_id}: {e}")
+                                error_msg = f"Failed to analyze bias for article {article_id}: {e}"
+                                logger.warning(error_msg)
+                                errors.append(error_msg)
+                        else:
+                            error_msg = f"Failed to store article: {article.title[:50]}"
+                            logger.warning(error_msg)
+                            errors.append(error_msg)
                     except Exception as e:
-                        logger.warning(f"Failed to store article: {e}")
+                        error_msg = f"Failed to process article {i+1}: {e}"
+                        logger.warning(error_msg)
+                        errors.append(error_msg)
                         continue
                 
-                return jsonify({
+                response_data = {
                     'success': True,
                     'message': f'Scraped {len(scraped_articles)} articles from {source}, stored {stored_count}, analyzed {analyzed_count}',
                     'articles_count': stored_count,
                     'analyzed_count': analyzed_count,
                     'source': source
-                })
+                }
+                
+                if errors:
+                    response_data['warnings'] = errors[:5]  # Include first 5 errors
+                
+                return jsonify(response_data)
                 
             except Exception as e:
-                logger.error(f"Source scraping failed: {e}")
-                return jsonify({'error': f'Source scraping failed: {str(e)}'}), 400
+                error_msg = f"Source scraping failed: {str(e)}"
+                logger.error(error_msg)
+                return jsonify({'success': False, 'error': error_msg}), 400
         
         else:
             return jsonify({'error': 'Either "url" or "source" parameter is required'}), 400

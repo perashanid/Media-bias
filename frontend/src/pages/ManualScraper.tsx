@@ -28,6 +28,14 @@ interface ScrapingResult {
   title?: string;
   source?: string;
   articles_count?: number;
+  analyzed_count?: number;
+  source_results?: {
+    [source: string]: {
+      scraped: number;
+      stored: number;
+      analyzed: number;
+    };
+  };
   article?: {
     title: string;
     source: string;

@@ -21,56 +21,75 @@ class DatabaseConnection:
         
     def connect(self) -> Database:
         """Establish connection to MongoDB"""
-        try:
-            # Get connection details from environment variables
-            mongo_uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
-            database_name = os.getenv('DATABASE_NAME', 'media_bias_detector')
-            
-            # For MongoDB Atlas, append database name to URI if not present
-            if 'mongodb+srv://' in mongo_uri and not mongo_uri.endswith('/'):
-                mongo_uri = f"{mongo_uri}{database_name}"
-            
-            # Create MongoDB client with shorter timeout for testing
-            self.client = MongoClient(mongo_uri, serverSelectionTimeoutMS=10000)
-            self.database = self.client[database_name]
-            
-            # Test connection
-            self.client.admin.command('ping')
-            logger.info(f"Successfully connected to MongoDB database: {database_name}")
-            
-            # Initialize database indexes
-            self._create_indexes()
-            
-            return self.database
-            
-        except Exception as e:
-            logger.error(f"Failed to connect to MongoDB: {e}")
-            logger.warning("Using mock database for testing purposes")
-            return self._create_mock_database()
+        database_name = 'media_bias_detector'
+        
+        # Try multiple connection options automatically
+        connection_options = [
+            # Option 1: MongoDB Atlas with proper SSL handling
+            {
+                'uri': 'mongodb+srv://rokshanid_db_user:fSdGCVvK6bqLb6Ps@rokshanid.9rebh5y.mongodb.net/media_bias_detector?retryWrites=true&w=majority&appName=Cluster0',
+                'name': 'MongoDB Atlas (Standard)',
+                'options': {
+                    'serverSelectionTimeoutMS': 10000,
+                    'connectTimeoutMS': 10000,
+                    'socketTimeoutMS': 10000
+                }
+            },
+            # Option 2: MongoDB Atlas with TLS settings
+            {
+                'uri': 'mongodb+srv://rokshanid_db_user:fSdGCVvK6bqLb6Ps@rokshanid.9rebh5y.mongodb.net/media_bias_detector?retryWrites=true&w=majority&appName=Cluster0',
+                'name': 'MongoDB Atlas (TLS)',
+                'options': {
+                    'serverSelectionTimeoutMS': 8000,
+                    'connectTimeoutMS': 8000,
+                    'socketTimeoutMS': 8000,
+                    'tls': True,
+                    'tlsAllowInvalidCertificates': True
+                }
+            },
+            # Option 3: Local MongoDB
+            {
+                'uri': 'mongodb://localhost:27017/',
+                'name': 'Local MongoDB',
+                'options': {
+                    'serverSelectionTimeoutMS': 3000,
+                    'connectTimeoutMS': 3000,
+                    'socketTimeoutMS': 3000
+                }
+            }
+        ]
+        
+        for option in connection_options:
+            try:
+                logger.info(f"Attempting connection to {option['name']}...")
+                
+                self.client = MongoClient(option['uri'], **option['options'])
+                self.database = self.client[database_name]
+                
+                # Test connection
+                self.client.admin.command('ping')
+                logger.info(f"✅ Successfully connected to {option['name']}")
+                
+                # Initialize database indexes
+                self._create_indexes()
+                
+                return self.database
+                
+            except Exception as e:
+                logger.warning(f"❌ {option['name']} failed: {str(e)[:100]}...")
+                continue
+        
+        # If all options fail, raise error
+        logger.error("❌ All database connection attempts failed!")
+        logger.error("Please ensure:")
+        logger.error("1. MongoDB Atlas cluster is running and accessible")
+        logger.error("2. IP address is whitelisted in Atlas")
+        logger.error("3. Database credentials are correct")
+        logger.error("4. Or install MongoDB locally")
+        raise RuntimeError("No database connection available")
+
     
-    def _create_mock_database(self):
-        """Create a mock database for testing when MongoDB is not available"""
-        from unittest.mock import MagicMock
-        
-        # Create mock database and collections
-        mock_db = MagicMock()
-        mock_collection = MagicMock()
-        
-        # Configure mock methods
-        mock_collection.create_index.return_value = None
-        mock_collection.insert_one.return_value = MagicMock(inserted_id="mock_id")
-        mock_collection.find.return_value = []
-        mock_collection.find_one.return_value = None
-        mock_collection.update_one.return_value = MagicMock(modified_count=1)
-        mock_collection.delete_one.return_value = MagicMock(deleted_count=1)
-        
-        mock_db.__getitem__.return_value = mock_collection
-        mock_db.articles = mock_collection
-        mock_db.article_groups = mock_collection
-        
-        self.database = mock_db
-        logger.info("Mock database created for testing")
-        return mock_db
+
     
     def _create_indexes(self):
         """Create necessary database indexes for optimal performance"""
@@ -116,10 +135,10 @@ class DatabaseConnection:
             logger.error(f"Failed to create database indexes: {e}")
             raise
     
-    def get_collection(self, collection_name: str) -> Collection:
+    def get_collection(self, collection_name: str):
         """Get a specific collection from the database"""
         if self.database is None:
-            raise RuntimeError("Database connection not established. Call connect() first.")
+            self.connect()
         return self.database[collection_name]
     
     def close(self):
@@ -140,14 +159,18 @@ def get_database() -> Database:
     return db_connection.database
 
 
-def get_articles_collection() -> Collection:
+def get_articles_collection():
     """Get the articles collection"""
-    return db_connection.get_collection('articles')
+    if db_connection.database is None:
+        db_connection.connect()
+    return db_connection.database['articles']
 
 
-def get_article_groups_collection() -> Collection:
+def get_article_groups_collection():
     """Get the article_groups collection"""
-    return db_connection.get_collection('article_groups')
+    if db_connection.database is None:
+        db_connection.connect()
+    return db_connection.database['article_groups']
 
 
 def initialize_database():

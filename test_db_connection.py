@@ -48,4 +48,6 @@ def test_connection():
         return False
 
 if __name__ == "__main__":
-    test_connection()
+    import sys
+    success = test_connection()
+    sys.exit(0 if success else 1)

@@ -1,0 +1,39 @@
+{
+  "name": "media-bias-detector",
+  "version": "1.0.0",
+  "description": "Media Bias Detector - Full Stack Application",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others --prefix \"[{name}]\" --names \"backend,frontend\" \"npm run backend\" \"npm run frontend\"",
+    "start": "npm run dev",
+    "backend": "python run_backend.py",
+    "frontend": "cd frontend && set BROWSER=none && npm start",
+    "install-frontend": "cd frontend && npm install",
+    "build-frontend": "cd frontend && npm run build",
+    "test-frontend": "cd frontend && npm test",
+    "test-backend": "python -m pytest tests/",
+    "test": "npm run test-backend && npm run test-frontend",
+    "setup": "node setup.js",
+    "setup-db": "python setup_database.py",
+    "install-mongodb": "python install_mongodb.py",
+    "postinstall": "npm run install-frontend",
+    "check-db": "python test_db_connection.py"
+  },
+  "keywords": [
+    "media-bias",
+    "detector",
+    "flask",
+    "react",
+    "python",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "python": ">=3.8.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
