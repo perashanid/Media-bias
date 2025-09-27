@@ -11,6 +11,7 @@ import BiasAnalyzer from './pages/BiasAnalyzer';
 import ManualScraper from './pages/ManualScraper';
 import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
+import ProtectedRoute from './components/ProtectedRoute';
 import { DashboardProvider } from './contexts/DashboardContext';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -23,7 +24,11 @@ function App() {
           <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
               <Route path="/articles" element={<ArticleList />} />
               <Route path="/articles/:id" element={<ArticleDetail />} />
               <Route path="/comparison" element={<ComparisonView />} />

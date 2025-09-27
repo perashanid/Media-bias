@@ -24,8 +24,11 @@ import {
   Psychology,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  
   return (
     <Container maxWidth="lg">
       {/* Hero Section */}
@@ -71,10 +74,12 @@ const Home: React.FC = () => {
             fontSize: '1.1rem',
           }
         }}>
-          <Button variant="contained" size="large" component={Link} to="/dashboard" startIcon={<Assessment />}>
-            View Dashboard
-          </Button>
-          <Button variant="outlined" size="large" component={Link} to="/articles" startIcon={<Article />}>
+          {isAuthenticated && (
+            <Button variant="contained" size="large" component={Link} to="/dashboard" startIcon={<Assessment />}>
+              View Dashboard
+            </Button>
+          )}
+          <Button variant={isAuthenticated ? "outlined" : "contained"} size="large" component={Link} to="/articles" startIcon={<Article />}>
             Browse Articles
           </Button>
           <Button variant="outlined" size="large" component={Link} to="/analyzer" startIcon={<Analytics />}>
@@ -484,23 +489,43 @@ const Home: React.FC = () => {
             fontSize: '1.1rem',
           }
         }}>
-          <Button 
-            variant="contained" 
-            size="large" 
-            component={Link} 
-            to="/dashboard" 
-            sx={{ 
-              bgcolor: 'white', 
-              color: 'primary.main', 
-              '&:hover': { 
-                bgcolor: 'grey.100',
-                transform: 'translateY(-2px)',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-              } 
-            }}
-          >
-            View Dashboard
-          </Button>
+          {isAuthenticated ? (
+            <Button 
+              variant="contained" 
+              size="large" 
+              component={Link} 
+              to="/dashboard" 
+              sx={{ 
+                bgcolor: 'white', 
+                color: '#0D1B2A',
+                '&:hover': { 
+                  bgcolor: '#f5f5f5',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                } 
+              }}
+            >
+              View Dashboard
+            </Button>
+          ) : (
+            <Button 
+              variant="contained" 
+              size="large" 
+              component={Link} 
+              to="/articles" 
+              sx={{ 
+                bgcolor: 'white', 
+                color: '#0D1B2A',
+                '&:hover': { 
+                  bgcolor: '#f5f5f5',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+                } 
+              }}
+            >
+              Browse Articles
+            </Button>
+          )}
           <Button 
             variant="outlined" 
             size="large" 
@@ -510,7 +535,7 @@ const Home: React.FC = () => {
               borderColor: 'white', 
               color: 'white', 
               '&:hover': { 
-                borderColor: 'grey.300', 
+                borderColor: 'rgba(255, 255, 255, 0.8)', 
                 bgcolor: 'rgba(255,255,255,0.1)',
                 transform: 'translateY(-2px)',
               } 

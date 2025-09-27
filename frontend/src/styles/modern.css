@@ -439,4 +439,49 @@ tact and Privacy page specific fixes */
 
 [data-theme="light"] .MuiTextField-root .MuiInputLabel-root.Mui-focused {
   color: var(--color-primary);
+}/* 
+Fix navbar title visibility in light mode */
+[data-theme="light"] .MuiAppBar-root .MuiTypography-root {
+  color: white !important;
+}
+
+[data-theme="light"] .MuiAppBar-root .MuiButton-root {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .MuiAppBar-root .MuiButton-root:hover {
+  color: white !important;
+}
+
+[data-theme="light"] .MuiAppBar-root .MuiIconButton-root {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+[data-theme="light"] .MuiAppBar-root .MuiIconButton-root:hover {
+  color: white !important;
+}/* Get
+ Started section fixes for light mode */
+[data-theme="light"] .MuiPaper-root h3,
+[data-theme="light"] .MuiPaper-root h6 {
+  color: white !important;
+}
+
+/* Ensure buttons in Get Started section have proper colors */
+[data-theme="light"] .MuiPaper-root .MuiButton-contained {
+  background-color: white !important;
+  color: #0D1B2A !important;
+}
+
+[data-theme="light"] .MuiPaper-root .MuiButton-contained:hover {
+  background-color: #f5f5f5 !important;
+}
+
+[data-theme="light"] .MuiPaper-root .MuiButton-outlined {
+  border-color: white !important;
+  color: white !important;
+}
+
+[data-theme="light"] .MuiPaper-root .MuiButton-outlined:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
 }

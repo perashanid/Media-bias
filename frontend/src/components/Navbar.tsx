@@ -15,7 +15,7 @@ const Navbar: React.FC = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: <Assessment /> },
-    { path: '/dashboard', label: 'Dashboard', icon: <Assessment /> },
+    ...(isAuthenticated ? [{ path: '/dashboard', label: 'Dashboard', icon: <Assessment /> }] : []),
     { path: '/articles', label: 'Articles', icon: <Article /> },
     { path: '/comparison', label: 'Comparison', icon: <Compare /> },
     { path: '/analyzer', label: 'Analyzer', icon: <Analytics /> },
