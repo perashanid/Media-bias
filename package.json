@@ -4,10 +4,10 @@
   "description": "Modern Media Bias Detector - Full Stack Application",
   "private": true,
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
+    "build": "cd frontend && npm install --legacy-peer-deps && npm run build",
     "start": "gunicorn --bind 0.0.0.0:$PORT api.app:app",
     "dev": "concurrently --kill-others --prefix \"[{name}]\" --names \"backend,frontend\" \"python api/app.py\" \"cd frontend && npm start\"",
-    "install-frontend": "cd frontend && npm install",
+    "install-frontend": "cd frontend && npm install --legacy-peer-deps",
     "build-frontend": "cd frontend && npm run build",
     "postinstall": "npm run install-frontend"
   },
