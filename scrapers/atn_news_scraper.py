@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from models.article import Article
 from scrapers.base_scraper import BaseScraper
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -15,165 +16,167 @@ class ATNNewsScraper(BaseScraper):
         super().__init__("ATN News TV", "https://www.atnnewstv.com")
     
     def _get_article_urls(self, max_articles: int) -> List[str]:
-        """Get article URLs from ATN News TV using sitemap approach"""
+        """Get article URLs from ATN News TV JSON endpoints"""
         article_urls = []
         
-        try:
-            # Use sitemap approach since regular pages don't show articles
-            from datetime import datetime, timedelta
-            
-            # Try last few days of sitemaps
-            for days_back in range(5):  # Try last 5 days
-                if len(article_urls) >= max_articles:
-                    break
-                
-                date = datetime.now() - timedelta(days=days_back)
-                date_str = date.strftime("%Y-%m-%d")
-                sitemap_url = f"https://www.atnnewstv.com/sitemap/sitemap-daily-{date_str}.xml"
-                
-                response = self._make_request(sitemap_url)
-                if not response:
-                    continue
-                
-                try:
-                    soup = BeautifulSoup(response.content, 'xml')
-                    urls = soup.find_all('loc')
-                    
-                    for url_elem in urls:
-                        url = url_elem.get_text()
-                        
-                        # Filter for actual articles (not images)
-                        if self._is_article_url(url) and url not in article_urls:
-                            article_urls.append(url)
-                            
-                            if len(article_urls) >= max_articles:
-                                break
-                                
-                except Exception as e:
-                    logger.error(f"Failed to parse sitemap {sitemap_url}: {e}")
-                    continue
+        # ATN News uses JSON endpoints for content
+        json_endpoints = [
+            "https://www.atnnewstv.com/assets/news/Spot-Light.json"
+        ]
         
-        except Exception as e:
-            logger.error(f"Failed to get article URLs from sitemap: {e}")
+        for endpoint in json_endpoints:
+            if len(article_urls) >= max_articles:
+                break
+                
+            response = self._make_request(endpoint)
+            
+            if not response:
+                continue
+            
+            try:
+                data = response.json()
+                
+                if 'posts' in data:
+                    posts = data['posts']
+                    
+                    for post in posts:
+                        if len(article_urls) >= max_articles:
+                            break
+                            
+                        post_id = post.get('post_id')
+                        if post_id:
+                            # Construct article URL using the pattern: /details/{post_id}
+                            article_url = f"{self.base_url}/details/{post_id}"
+                            
+                            if article_url not in article_urls:
+                                article_urls.append(article_url)
+                        
+            except Exception as e:
+                logger.error(f"Failed to extract URLs from {endpoint}: {e}")
+                continue
         
         return article_urls[:max_articles]
     
     def _is_article_url(self, url: str) -> bool:
         """Check if URL is likely an article URL"""
-        # ATN News uses /details/ pattern for articles
+        # ATN News uses various patterns for articles
         if 'atnnewstv.com' not in url:
             return False
         
-        # Must have /details/ pattern with article ID
-        if '/details/' in url:
-            # Extract article ID and validate it's numeric
-            try:
-                article_id = url.split('/details/')[-1]
-                return article_id.isdigit() and len(article_id) > 3
-            except:
-                return False
+        # Article patterns for ATN News
+        article_patterns = [
+            '/details/',
+            '/bangladesh/',
+            '/politics/',
+            '/international/',
+            '/sports/',
+            '/entertainment/',
+            '/news/',
+            '/national/'
+        ]
         
         # Exclude non-article URLs
         exclude_patterns = [
             '.jpg', '.png', '.pdf', '.gif', '.mp4',
             '/assets/', '/images/', '/css/', '/js/',
-            '/sitemap/', '/rss/', '/feed/'
+            '/sitemap/', '/rss/', '/feed/', '/search',
+            '/tag/', '/author/', '/category/', '/page/',
+            '/live/', '/video/', '/gallery/'
         ]
         
+        has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
-        return not has_exclude_pattern
+        
+        # URL should be deep enough to be an article
+        is_deep_url = len(url.split('/')) >= 4
+        
+        return has_article_pattern and not has_exclude_pattern and is_deep_url
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from ATN News TV page"""
         try:
-            # Extract title
-            title_selectors = [
-                'h1.title',
-                'h1.headline',
-                '.news-title h1',
-                '.story-title h1',
-                '.article-title h1',
-                '.page-title h1',
-                'h1'
-            ]
+            # Extract title from h1 tag
+            title_elem = soup.select_one('h1')
+            if not title_elem:
+                # Fallback to page title
+                title_elem = soup.select_one('title')
             
-            title = None
-            for selector in title_selectors:
-                title_elem = soup.select_one(selector)
-                if title_elem:
-                    title = self._clean_text(title_elem.get_text())
-                    break
-            
-            if not title:
+            if title_elem:
+                title = self._clean_text(title_elem.get_text())
+                # Clean title (remove site name)
+                if '::' in title:
+                    title = title.split('::')[0].strip()
+            else:
                 logger.warning(f"Could not extract title from {url}")
                 return None
             
-            # Extract content - ATN News doesn't seem to have main content in HTML
-            # Based on investigation, articles might not have extractable content
-            # Try basic paragraph extraction
+            # Extract content from the specific div structure used by ATN News
             content = ""
             
-            # Try to get content from paragraphs
-            paragraphs = soup.find_all('p')
-            content_parts = []
-            for p in paragraphs:
-                p_text = self._clean_text(p.get_text())
-                if len(p_text) > 20:  # Skip very short paragraphs
-                    content_parts.append(p_text)
+            # ATN News uses div with classes "col-sm-12 col-md-12 text-justify" for content
+            content_elem = soup.select_one('.col-sm-12.col-md-12.text-justify')
             
-            content = ' '.join(content_parts)
+            if content_elem:
+                # Remove unwanted elements
+                for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news, .video-player'):
+                    unwanted.decompose()
+                
+                content = self._clean_text(content_elem.get_text())
             
-            # If no content found, create minimal content from title
-            if len(content) < 50:
-                content = f"Article from ATN News: {title}"
+            # Fallback: try to get content from meta description or JSON-LD
+            if len(content) < 100:
+                # Try JSON-LD structured data
+                json_ld = soup.find('script', {'type': 'application/ld+json'})
+                if json_ld:
+                    try:
+                        structured_data = json.loads(json_ld.string)
+                        if 'description' in structured_data:
+                            content = self._clean_text(structured_data['description'])
+                    except:
+                        pass
+                
+                # Try meta description
+                if len(content) < 100:
+                    meta_desc = soup.find('meta', {'name': 'description'}) or soup.find('meta', {'property': 'og:description'})
+                    if meta_desc and meta_desc.get('content'):
+                        content = self._clean_text(meta_desc.get('content'))
             
-            if not content:
-                logger.warning(f"Could not extract content from {url}")
+            if not content or len(content) < 50:
+                logger.warning(f"Could not extract sufficient content from {url}")
                 return None
             
-            # Extract author
-            author_selectors = [
-                '.author-name',
-                '.byline',
-                '.news-author',
-                '.reporter-name',
-                '.author-info',
-                '.correspondent',
-                '[data-author]'
-            ]
-            
+            # Extract author from JSON-LD structured data
             author = None
-            for selector in author_selectors:
-                author_elem = soup.select_one(selector)
-                if author_elem:
-                    author = self._clean_text(author_elem.get_text())
-                    # Clean author text (remove common prefixes)
-                    prefixes = ['প্রতিবেদক:', 'সংবাদদাতা:', 'By ', 'লিখেছেন:', 'Reporter:', 'Correspondent:']
-                    for prefix in prefixes:
-                        if author.startswith(prefix):
-                            author = author[len(prefix):].strip()
-                            break
-                    break
+            json_ld = soup.find('script', {'type': 'application/ld+json'})
+            if json_ld:
+                try:
+                    structured_data = json.loads(json_ld.string)
+                    if 'author' in structured_data:
+                        author_data = structured_data['author']
+                        if isinstance(author_data, dict) and 'name' in author_data:
+                            author = author_data['name']
+                        elif isinstance(author_data, str):
+                            author = author_data
+                except:
+                    pass
             
-            # Extract publication date
-            date_selectors = [
-                '.publish-date',
-                '.news-date',
-                '.date-time',
-                'time[datetime]',
-                '.meta-date',
-                '.published-date',
-                '.post-date',
-                '[data-publish-date]'
-            ]
+            # Default author if not found
+            if not author:
+                author = "ATN News Desk"
             
+            # Extract publication date from JSON-LD structured data
             publication_date = None
-            for selector in date_selectors:
-                date_elem = soup.select_one(selector)
-                if date_elem:
-                    date_str = date_elem.get('datetime') or date_elem.get_text()
-                    publication_date = self._parse_date(date_str)
-                    break
+            if json_ld:
+                try:
+                    structured_data = json.loads(json_ld.string)
+                    if 'datePublished' in structured_data:
+                        date_str = structured_data['datePublished']
+                        publication_date = self._parse_date(date_str)
+                    elif 'dateModified' in structured_data:
+                        date_str = structured_data['dateModified']
+                        publication_date = self._parse_date(date_str)
+                except:
+                    pass
             
             if not publication_date:
                 publication_date = datetime.now()

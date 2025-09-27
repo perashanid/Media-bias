@@ -164,18 +164,7 @@ export const statisticsApi = {
   },
 };
 
-// Stats API (new endpoint)
-export const statsApi = {
-  getOverview: async () => {
-    const response = await api.get('/stats/overview');
-    return response.data;
-  },
 
-  getRecent: async () => {
-    const response = await api.get('/stats/recent');
-    return response.data;
-  },
-};
 
 // Scraping API
 export const scrapingApi = {

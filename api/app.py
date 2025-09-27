@@ -23,7 +23,7 @@ from api.routes.comparison import comparison_bp
 from api.routes.statistics import statistics_bp
 from api.routes.scraper import scraper_bp
 from api.routes.auth import auth_bp
-from api.routes.stats import stats_bp
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -45,7 +45,7 @@ app.register_blueprint(comparison_bp)
 app.register_blueprint(statistics_bp)
 app.register_blueprint(scraper_bp)
 app.register_blueprint(auth_bp)
-app.register_blueprint(stats_bp)
+
 
 # Initialize services
 storage_service = ArticleStorageService()
@@ -246,6 +246,9 @@ def get_article(article_id):
     except Exception as e:
         logger.error(f"Failed to get article {article_id}: {e}")
         return jsonify({'error': 'Failed to retrieve article'}), 500
+
+
+
 
 
 @app.route('/api/articles/search', methods=['GET'])

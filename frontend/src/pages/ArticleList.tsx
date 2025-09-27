@@ -13,8 +13,6 @@ import {
   CircularProgress,
   Alert,
   InputAdornment,
-  IconButton,
-  Tooltip,
   Checkbox,
   FormControlLabel,
   Fab,
@@ -26,8 +24,6 @@ import {
   Search, 
   Visibility, 
   Analytics, 
-  VisibilityOff, 
-  Restore, 
   Compare,
   FilterList,
   Clear,
@@ -39,7 +35,7 @@ import { format } from 'date-fns';
 import { articlesApi } from '../services/api';
 import { Article } from '../types/Article';
 import BiasScoreCard from '../components/BiasScoreCard';
-import { useAuth } from '../contexts/AuthContext';
+
 
 const ArticleList: React.FC = () => {
   const navigate = useNavigate();
@@ -56,23 +52,15 @@ const ArticleList: React.FC = () => {
   const [totalArticles, setTotalArticles] = useState(0);
   const [availableSources, setAvailableSources] = useState<string[]>([]);
   const [availableTopics, setAvailableTopics] = useState<string[]>([]);
-  const [hiddenArticles, setHiddenArticles] = useState<string[]>([]);
   const [selectedArticles, setSelectedArticles] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
   const [comparing, setComparing] = useState(false);
   
-  const { isAuthenticated, hideArticle, unhideArticle, getHiddenArticles } = useAuth();
+
 
   const articlesPerPage = 15;
 
-  const loadHiddenArticles = useCallback(async () => {
-    try {
-      const hidden = await getHiddenArticles();
-      setHiddenArticles(hidden);
-    } catch (error) {
-      console.error('Failed to load hidden articles:', error);
-    }
-  }, [getHiddenArticles]);
+
 
   const fetchAvailableTopics = useCallback(async () => {
     try {
@@ -170,10 +158,7 @@ const ArticleList: React.FC = () => {
   useEffect(() => {
     fetchAvailableTopics();
     fetchArticles();
-    if (isAuthenticated) {
-      loadHiddenArticles();
-    }
-  }, [fetchAvailableTopics, fetchArticles, loadHiddenArticles, isAuthenticated]);
+  }, [fetchAvailableTopics, fetchArticles]);
 
   // Multi-select handlers
   const handleSelectArticle = (articleId: string) => {
@@ -307,31 +292,7 @@ const ArticleList: React.FC = () => {
     return 'High Bias';
   };
 
-  const handleHideArticle = async (articleId: string) => {
-    try {
-      const success = await hideArticle(articleId);
-      if (success) {
-        setHiddenArticles([...hiddenArticles, articleId]);
-      }
-    } catch (error) {
-      console.error('Failed to hide article:', error);
-    }
-  };
 
-  const handleUnhideArticle = async (articleId: string) => {
-    try {
-      const success = await unhideArticle(articleId);
-      if (success) {
-        setHiddenArticles(hiddenArticles.filter(id => id !== articleId));
-      }
-    } catch (error) {
-      console.error('Failed to unhide article:', error);
-    }
-  };
-
-  const isArticleHidden = (articleId: string) => {
-    return hiddenArticles.includes(articleId);
-  };
 
   return (
     <Box>
@@ -665,7 +626,7 @@ const ArticleList: React.FC = () => {
 
                   <Box sx={{ p: 3, pt: 0 }}>
                     <Grid container spacing={1.5} alignItems="center">
-                      <Grid item xs={isAuthenticated ? 4 : 6}>
+                      <Grid item xs={6}>
                         <Button
                           fullWidth
                           variant="contained"
@@ -678,7 +639,7 @@ const ArticleList: React.FC = () => {
                           View
                         </Button>
                       </Grid>
-                      <Grid item xs={isAuthenticated ? 4 : 6}>
+                      <Grid item xs={6}>
                         <Button
                           fullWidth
                           variant="outlined"
@@ -691,28 +652,6 @@ const ArticleList: React.FC = () => {
                           Compare
                         </Button>
                       </Grid>
-                      {isAuthenticated && (
-                        <Grid item xs={4}>
-                          <Tooltip title={isArticleHidden(article.id) ? "Unhide article" : "Hide article"}>
-                            <IconButton
-                              size="small"
-                              onClick={() => 
-                                isArticleHidden(article.id) 
-                                  ? handleUnhideArticle(article.id)
-                                  : handleHideArticle(article.id)
-                              }
-                              color={isArticleHidden(article.id) ? "warning" : "default"}
-                              sx={{ 
-                                borderRadius: 2,
-                                border: '1px solid',
-                                borderColor: isArticleHidden(article.id) ? 'warning.main' : 'grey.300',
-                              }}
-                            >
-                              {isArticleHidden(article.id) ? <Restore /> : <VisibilityOff />}
-                            </IconButton>
-                          </Tooltip>
-                        </Grid>
-                      )}
                     </Grid>
                   </Box>
                 </Card>

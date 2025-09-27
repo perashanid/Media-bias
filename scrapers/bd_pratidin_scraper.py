@@ -34,7 +34,7 @@ class BDPratidinScraper(BaseScraper):
                 continue
             
             try:
-                soup = BeautifulSoup(response.content, 'html.parser')
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
                 # Updated selectors based on current structure - focus on 2025 articles
                 link_selectors = [
@@ -118,7 +118,7 @@ class BDPratidinScraper(BaseScraper):
         
         # Must have article ID pattern (numbers at the end)
         import re
-        has_article_id = re.search(r'/\d{7}$', url) or re.search(r'/\d{6}$', url)
+        has_article_id = re.search(r'/\d{6,7}', url) or '/2024/' in url or '/2025/' in url
         
         # Check if URL contains article patterns and doesn't contain exclude patterns
         has_article_pattern = any(pattern in url for pattern in article_patterns)

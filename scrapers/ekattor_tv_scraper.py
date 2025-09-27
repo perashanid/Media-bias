@@ -34,7 +34,7 @@ class EkattorTVScraper(BaseScraper):
                 continue
             
             try:
-                soup = BeautifulSoup(response.content, 'html.parser')
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
                 # Updated selectors based on debug findings
                 link_selectors = [

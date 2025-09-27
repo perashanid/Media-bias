@@ -20,9 +20,6 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  hideArticle: (articleId: string) => Promise<boolean>;
-  unhideArticle: (articleId: string) => Promise<boolean>;
-  getHiddenArticles: () => Promise<string[]>;
   updatePreferences: (preferences: any) => Promise<boolean>;
 }
 
@@ -172,43 +169,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const hideArticle = async (articleId: string): Promise<boolean> => {
-    try {
-      const response = await apiCall(`/api/auth/articles/${articleId}/hide`, {
-        method: 'POST',
-      });
-      return response.ok;
-    } catch (error) {
-      console.error('Hide article error:', error);
-      return false;
-    }
-  };
 
-  const unhideArticle = async (articleId: string): Promise<boolean> => {
-    try {
-      const response = await apiCall(`/api/auth/articles/${articleId}/unhide`, {
-        method: 'POST',
-      });
-      return response.ok;
-    } catch (error) {
-      console.error('Unhide article error:', error);
-      return false;
-    }
-  };
 
-  const getHiddenArticles = async (): Promise<string[]> => {
-    try {
-      const response = await apiCall('/api/auth/articles/hidden');
-      if (response.ok) {
-        const data = await response.json();
-        return data.hidden_articles;
-      }
-      return [];
-    } catch (error) {
-      console.error('Get hidden articles error:', error);
-      return [];
-    }
-  };
+
 
   const updatePreferences = async (preferences: any): Promise<boolean> => {
     try {
@@ -235,9 +198,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
-    hideArticle,
-    unhideArticle,
-    getHiddenArticles,
     updatePreferences,
   };
 

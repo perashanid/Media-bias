@@ -21,6 +21,10 @@ class DailyStarScraper(BaseScraper):
         # Main categories to scrape
         categories = [
             "",  # Homepage
+            "/news/bangladesh",  # Bangladesh news
+            "/news/world",  # World news
+            "/business",  # Business
+            "/sports",  # Sports
         ]
         
         for category in categories:
@@ -34,18 +38,17 @@ class DailyStarScraper(BaseScraper):
                 continue
             
             try:
-                soup = BeautifulSoup(response.content, 'html.parser')
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
                 # Find article links - Updated selectors based on current structure
                 link_selectors = [
-                    'h3 a',  # Main article headlines
-                    'h4 a',  # Secondary headlines
-                    'h2 a',  # Section headlines
-                    'a[href*="/news/"]',
+                    'a[href*="/news/"]',  # Primary news links
                     'a[href*="/business/"]',
                     'a[href*="/sports/"]',
                     'a[href*="/lifestyle/"]',
-                    'a[href*="/opinion/"]'
+                    'a[href*="/opinion/"]',
+                    'h1 a', 'h2 a', 'h3 a', 'h4 a',  # Headlines
+                    '.story a', '.article a', '.news a'  # Generic article containers
                 ]
                 
                 for selector in link_selectors:
@@ -112,15 +115,22 @@ class DailyStarScraper(BaseScraper):
             '/archive'
         ]
         
-        # Must have a specific article ID pattern (numbers at the end)
-        import re
-        has_article_id = re.search(r'-\d{7}$', url) or '/news/' in url or '/opinion/' in url or '/business/' in url
-        
         # Check if URL contains article patterns and doesn't contain exclude patterns
         has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
         
-        return has_article_pattern and not has_exclude_pattern and has_article_id
+        # Additional validation - URL should be deep enough to be an article (more than just category)
+        is_deep_url = len(url.split('/')) >= 5  # Changed from 4 to 5 to avoid category pages
+        
+        # Also check if URL has article-like structure (contains year or article ID)
+        import re
+        has_article_structure = (
+            re.search(r'/\d{4}/', url) or  # Contains year
+            re.search(r'-\d{6,}', url) or  # Contains article ID
+            len(url.split('/')) >= 6  # Very deep URL likely to be article
+        )
+        
+        return has_article_pattern and not has_exclude_pattern and (is_deep_url or has_article_structure)
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from The Daily Star page"""

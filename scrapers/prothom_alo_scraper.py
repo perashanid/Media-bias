@@ -40,20 +40,21 @@ class ProthomAloScraper(BaseScraper):
                 continue
             
             try:
-                soup = BeautifulSoup(response.content, 'html.parser')
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
                 # Find article links - Prothom Alo uses various link patterns
                 link_selectors = [
                     'a[href*="/bangladesh/"]',
                     'a[href*="/politics/"]',
-                    'a[href*="/international/"]',
+                    'a[href*="/world/"]',  # Changed from international
                     'a[href*="/business/"]',
                     'a[href*="/sports/"]',
                     'a[href*="/entertainment/"]',
+                    'a[href*="/opinion/"]',
+                    'a[href*="/lifestyle/"]',
                     '.story-card a',
                     '.news-card a',
-                    'h2 a',
-                    'h3 a'
+                    'h1 a', 'h2 a', 'h3 a', 'h4 a'
                 ]
                 
                 for selector in link_selectors:
@@ -91,7 +92,7 @@ class ProthomAloScraper(BaseScraper):
         article_patterns = [
             '/bangladesh/',
             '/politics/',
-            '/international/',
+            '/world/',  # Changed from international
             '/business/',
             '/sports/',
             '/entertainment/',

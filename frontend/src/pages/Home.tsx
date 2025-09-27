@@ -12,7 +12,7 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  CircularProgress,
+
   Chip,
   CardContent,
 } from '@mui/material';
@@ -31,7 +31,6 @@ import {
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { statsApi } from '../services/api';
 
 interface OverviewStats {
   total_articles: number;
@@ -51,20 +50,46 @@ const Home: React.FC = () => {
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchHomeData = async () => {
       try {
-        const response = await statsApi.getOverview();
-        if (response.success) {
-          setStats(response.stats);
+        const response = await fetch('/api/statistics/overview');
+        const data = await response.json();
+        if (data.success && data.stats) {
+          setStats(data.stats);
+        } else {
+          // Set default stats if API fails
+          setStats({
+            total_articles: 0,
+            recent_articles: 0,
+            total_users: 0,
+            analyzed_articles: 0,
+            total_sources: 0,
+            analysis_coverage: 0,
+            language_stats: [],
+            bias_distribution: [],
+            top_sources: []
+          });
         }
       } catch (error) {
-        console.error('Failed to fetch stats:', error);
+        console.error('Failed to fetch home data:', error);
+        // Set default stats on error
+        setStats({
+          total_articles: 0,
+          recent_articles: 0,
+          total_users: 0,
+          analyzed_articles: 0,
+          total_sources: 0,
+          analysis_coverage: 0,
+          language_stats: [],
+          bias_distribution: [],
+          top_sources: []
+        });
       } finally {
         setStatsLoading(false);
       }
     };
 
-    fetchStats();
+    fetchHomeData();
   }, []);
   
   return (

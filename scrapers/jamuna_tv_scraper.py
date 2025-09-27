@@ -7,139 +7,93 @@ import logging
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from models.article import Article
-from scrapers.enhanced_scraper import EnhancedScraper
+from scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger(__name__)
 
 
-class JamunaTVScraper(EnhancedScraper):
+class JamunaTVScraper(BaseScraper):
     """Scraper for Jamuna TV (jamuna.tv)"""
     
     def __init__(self):
         super().__init__("Jamuna TV", "https://jamuna.tv")
         # Additional headers are handled in _make_request method
     
-    def scrape_articles(self, max_articles: int = 50) -> List[Article]:
-        """Scrape articles from Jamuna TV"""
-        logger.info(f"Starting to scrape {self.source_name}")
+    def _get_article_urls(self, max_articles: int) -> List[str]:
+        """Get article URLs from Jamuna TV homepage and category pages"""
+        article_urls = []
         
-        try:
-            # First try to get articles from main sections
-            articles = []
-            
-            # Main news sections to scrape
-            sections = [
-                "https://jamuna.tv/news",
-                "https://jamuna.tv/politics", 
-                "https://jamuna.tv/international",
-                "https://jamuna.tv/business",
-                "https://jamuna.tv/sports",
-                "https://jamuna.tv/entertainment",
-                "https://jamuna.tv/lifestyle",
-                "https://jamuna.tv/technology"
-            ]
-            
-            articles_per_section = max_articles // len(sections)
-            
-            for section_url in sections:
-                if len(articles) >= max_articles:
-                    break
-                    
-                logger.info(f"Scraping section: {section_url}")
-                section_articles = self._scrape_section(section_url, articles_per_section)
-                articles.extend(section_articles)
-                
-                # Add delay between sections
-                time.sleep(random.uniform(2, 4))
-            
-            # If we don't have enough articles, use comprehensive crawling
-            if len(articles) < max_articles // 2:
-                logger.info("Not enough articles found in sections, starting comprehensive crawl")
-                crawl_articles = self.crawl_website(max_articles - len(articles), max_depth=2)
-                articles.extend(crawl_articles)
-            
-            logger.info(f"Successfully scraped {len(articles)} articles from {self.source_name}")
-            return articles[:max_articles]
-            
-        except Exception as e:
-            logger.error(f"Failed to scrape {self.source_name}: {e}")
-            return []
-    
-    def _scrape_section(self, section_url: str, max_articles: int) -> List[Article]:
-        """Scrape articles from a specific section"""
-        articles = []
-        
-        try:
-            response = self._make_request(section_url)
-            if not response:
-                return articles
-            
-            soup = BeautifulSoup(response.content, 'html.parser')
-            
-            # Find article links in the section
-            article_links = self._extract_article_links(soup, section_url)
-            
-            logger.info(f"Found {len(article_links)} article links in {section_url}")
-            
-            # Scrape each article
-            for i, article_url in enumerate(article_links[:max_articles]):
-                try:
-                    logger.info(f"Scraping article {i+1}/{min(len(article_links), max_articles)}: {article_url}")
-                    article = self._scrape_single_article(article_url)
-                    if article:
-                        articles.append(article)
-                        logger.info(f"Successfully scraped: {article.title[:50]}...")
-                    
-                    # Add delay between requests
-                    time.sleep(random.uniform(1, 2))
-                    
-                except Exception as e:
-                    logger.error(f"Failed to scrape article {article_url}: {e}")
-                    continue
-            
-        except Exception as e:
-            logger.error(f"Failed to scrape section {section_url}: {e}")
-        
-        return articles
-    
-    def _extract_article_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
-        """Extract article links from a page"""
-        links = set()
-        
-        # Common selectors for article links on Jamuna TV
-        article_selectors = [
-            'article a[href]',
-            '.news-item a[href]',
-            '.story-item a[href]',
-            '.post-item a[href]',
-            '.article-item a[href]',
-            '.news-list a[href]',
-            '.content-item a[href]',
-            'h2 a[href]',
-            'h3 a[href]',
-            '.title a[href]',
-            '.headline a[href]'
+        # Main categories to scrape
+        categories = [
+            "",  # Homepage
+            "/news",
+            "/politics", 
+            "/international",
+            "/business",
+            "/sports",
+            "/entertainment"
         ]
         
-        for selector in article_selectors:
-            elements = soup.select(selector)
-            for elem in elements:
-                href = elem.get('href')
-                if href:
-                    full_url = urljoin(base_url, href)
-                    if self._is_valid_article_url(full_url):
-                        links.add(full_url)
+        for category in categories:
+            if len(article_urls) >= max_articles:
+                break
+                
+            category_url = f"{self.base_url}{category}"
+            response = self._make_request(category_url)
+            
+            if not response:
+                continue
+            
+            try:
+                soup = BeautifulSoup(response.text, 'html.parser')
+                
+                # Find article links
+                link_selectors = [
+                    'article a[href]',
+                    '.news-item a[href]',
+                    '.story-item a[href]',
+                    '.post-item a[href]',
+                    '.article-item a[href]',
+                    'h2 a[href]',
+                    'h3 a[href]',
+                    'a[href*="/news/"]',
+                    'a[href*="/politics/"]',
+                    'a[href*="/international/"]',
+                    'a[href*="/business/"]',
+                    'a[href*="/sports/"]',
+                    'a[href*="/entertainment/"]'
+                ]
+                
+                for selector in link_selectors:
+                    links = soup.select(selector)
+                    for link in links:
+                        href = link.get('href')
+                        if href:
+                            # Convert relative URLs to absolute
+                            if href.startswith('/'):
+                                full_url = f"{self.base_url}{href}"
+                            elif href.startswith('http'):
+                                full_url = href
+                            else:
+                                continue
+                            
+                            # Filter out non-article URLs
+                            if self._is_valid_article_url(full_url) and full_url not in article_urls:
+                                article_urls.append(full_url)
+                                
+                                if len(article_urls) >= max_articles:
+                                    break
+                    
+                    if len(article_urls) >= max_articles:
+                        break
+                        
+            except Exception as e:
+                logger.error(f"Failed to extract URLs from {category_url}: {e}")
+                continue
         
-        # Also look for any links that look like articles
-        all_links = soup.find_all('a', href=True)
-        for link in all_links:
-            href = link.get('href')
-            if href:
-                full_url = urljoin(base_url, href)
-                if self._is_valid_article_url(full_url):
-                    links.add(full_url)
-        
-        return list(links)
+        return article_urls[:max_articles]
+    
+
     
     def _is_valid_article_url(self, url: str) -> bool:
         """Check if URL is a valid article URL for Jamuna TV"""
@@ -199,7 +153,7 @@ class JamunaTVScraper(EnhancedScraper):
             # Detect language (Jamuna TV is primarily Bengali)
             language = self._detect_language(f"{title} {content}")
             if not language or language == 'unknown':
-                language = 'Bengali'  # Default for Jamuna TV
+                language = 'bengali'  # Default for Jamuna TV
             
             return Article(
                 url=url,
@@ -341,47 +295,3 @@ class JamunaTVScraper(EnhancedScraper):
         
         return None
     
-    def _should_follow_link(self, url: str) -> bool:
-        """Override to be more specific for Jamuna TV"""
-        if not super()._should_follow_link(url):
-            return False
-        
-        # Only follow Jamuna TV links
-        if not url.startswith('https://jamuna.tv'):
-            return False
-        
-        return True
-    
-    def _is_article_page(self, soup: BeautifulSoup, url: str) -> bool:
-        """Override to be more specific for Jamuna TV"""
-        # Skip homepage
-        if url.rstrip('/') == 'https://jamuna.tv':
-            return False
-        
-        # Check for Jamuna TV specific article indicators
-        jamuna_indicators = [
-            soup.find('article'),
-            soup.find(class_=lambda x: x and any(term in x.lower() for term in 
-                     ['entry-content', 'post-content', 'article-content', 'news-content'])),
-            soup.find('h1'),  # Articles should have a main heading
-            len(soup.find_all('p')) > 3,  # Should have multiple paragraphs
-        ]
-        
-        # Must have title and substantial content
-        title_found = bool(soup.find('h1') or soup.find('title'))
-        text_content = soup.get_text()
-        has_content = len(text_content.strip()) > 500
-        
-        # Check if any Jamuna TV indicators are present
-        has_indicators = any(jamuna_indicators)
-        
-        # URL should look like an article
-        url_looks_like_article = (
-            len(url.split('/')) >= 4 and 
-            not any(skip in url.lower() for skip in [
-                '/category/', '/tag/', '/author/', '/search', '/page/', 
-                '/api/', '/auth/', '/contact', '/about'
-            ])
-        )
-        
-        return title_found and has_content and has_indicators and url_looks_like_article

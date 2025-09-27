@@ -17,13 +17,7 @@ import {
   Divider,
   Chip,
   IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Switch,
-  FormControlLabel,
+
   Tabs,
   Tab,
 } from '@mui/material';
@@ -52,9 +46,9 @@ import {
   Psychology,
   Speed,
   Refresh,
-  Settings,
   Visibility,
-  Restore,
+  Favorite,
+  FavoriteBorder,
   Person,
   Public,
 } from '@mui/icons-material';
@@ -98,7 +92,7 @@ function TabPanel(props: TabPanelProps) {
 
 const Dashboard: React.FC = () => {
   const { refreshTrigger } = useDashboard();
-  const { user, isAuthenticated, updatePreferences, getHiddenArticles, unhideArticle } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   
   // Global dashboard state
   const [overviewStats, setOverviewStats] = useState<OverviewStats | null>(null);
@@ -107,20 +101,14 @@ const Dashboard: React.FC = () => {
   
   // Personal dashboard state
   const [recentArticles, setRecentArticles] = useState<ArticleType[]>([]);
-  const [hiddenArticles, setHiddenArticles] = useState<string[]>([]);
-  const [hiddenArticleDetails, setHiddenArticleDetails] = useState<ArticleType[]>([]);
+  const [favoriteArticles, setFavoriteArticles] = useState<string[]>([]);
+  const [favoriteArticleDetails, setFavoriteArticleDetails] = useState<ArticleType[]>([]);
   
   // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [tabValue, setTabValue] = useState(0);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [preferences, setPreferences] = useState({
-    theme: 'light',
-    articles_per_page: 20,
-    default_time_range: 7,
-  });
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -138,19 +126,18 @@ const Dashboard: React.FC = () => {
 
       // Fetch personal data if authenticated
       if (isAuthenticated && user) {
-        setPreferences(user.preferences || preferences);
-        
         // Load recent articles
         const articlesResponse = await articlesApi.getArticles({ limit: 10 });
         setRecentArticles(articlesResponse.articles);
 
-        // Load hidden articles
-        const hidden = await getHiddenArticles();
-        setHiddenArticles(hidden);
+        // Load favorite articles (placeholder for now)
+        // TODO: Implement getFavoriteArticles API call
+        const favorites: string[] = []; // await getFavoriteArticles();
+        setFavoriteArticles(favorites);
 
-        // Load details for hidden articles (first 5)
-        const hiddenDetails = await Promise.all(
-          hidden.slice(0, 5).map(async (id) => {
+        // Load details for favorite articles (first 5)
+        const favoriteDetails = await Promise.all(
+          favorites.slice(0, 5).map(async (id) => {
             try {
               return await articlesApi.getArticle(id);
             } catch (error) {
@@ -158,7 +145,7 @@ const Dashboard: React.FC = () => {
             }
           })
         );
-        setHiddenArticleDetails(hiddenDetails.filter(Boolean) as ArticleType[]);
+        setFavoriteArticleDetails(favoriteDetails.filter(Boolean) as ArticleType[]);
       }
 
     } catch (err) {
@@ -167,7 +154,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, user, preferences, getHiddenArticles]);
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -182,26 +169,27 @@ const Dashboard: React.FC = () => {
     setTabValue(newValue);
   };
 
-  const handleUnhideArticle = async (articleId: string) => {
+  const handleToggleFavorite = async (articleId: string) => {
     try {
-      const success = await unhideArticle(articleId);
-      if (success) {
-        setHiddenArticles(hiddenArticles.filter(id => id !== articleId));
-        setHiddenArticleDetails(hiddenArticleDetails.filter(article => article.id !== articleId));
+      // TODO: Implement favorite/unfavorite API calls
+      const isFavorite = favoriteArticles.includes(articleId);
+      if (isFavorite) {
+        // Remove from favorites
+        setFavoriteArticles(favoriteArticles.filter(id => id !== articleId));
+        setFavoriteArticleDetails(favoriteArticleDetails.filter(article => article.id !== articleId));
+      } else {
+        // Add to favorites
+        setFavoriteArticles([...favoriteArticles, articleId]);
+        // Load article details
+        try {
+          const article = await articlesApi.getArticle(articleId);
+          setFavoriteArticleDetails([...favoriteArticleDetails, article]);
+        } catch (error) {
+          console.error('Failed to load article details:', error);
+        }
       }
     } catch (error) {
-      console.error('Failed to unhide article:', error);
-    }
-  };
-
-  const handleSavePreferences = async () => {
-    try {
-      const success = await updatePreferences(preferences);
-      if (success) {
-        setSettingsOpen(false);
-      }
-    } catch (error) {
-      console.error('Failed to update preferences:', error);
+      console.error('Failed to toggle favorite:', error);
     }
   };
 
@@ -257,16 +245,6 @@ const Dashboard: React.FC = () => {
           <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
             Last updated: {lastRefresh.toLocaleTimeString()}
           </Typography>
-          {isAuthenticated && (
-            <Button
-              variant="outlined"
-              startIcon={<Settings />}
-              onClick={() => setSettingsOpen(true)}
-              sx={{ borderRadius: 2 }}
-            >
-              Settings
-            </Button>
-          )}
           <Button
             variant="contained"
             startIcon={<Refresh />}
@@ -282,9 +260,56 @@ const Dashboard: React.FC = () => {
       {/* Tabs for Global/Personal Views */}
       {isAuthenticated && (
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="dashboard tabs">
-            <Tab icon={<Person />} label="Personal" />
-            <Tab icon={<Public />} label="Global" />
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            aria-label="dashboard tabs"
+            sx={{
+              '& .MuiTab-root': {
+                color: 'text.primary',
+                fontWeight: 500,
+                fontSize: '1rem',
+                minHeight: 64,
+                '&.Mui-selected': {
+                  color: 'primary.main',
+                  fontWeight: 600,
+                },
+                '& .MuiSvgIcon-root': {
+                  color: 'inherit',
+                },
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'primary.main',
+                height: 3,
+              },
+            }}
+          >
+            <Tab 
+              icon={<Person sx={{ fontSize: 24 }} />} 
+              label="Personal" 
+              sx={{ 
+                color: 'text.primary !important',
+                '&.Mui-selected': {
+                  color: 'primary.main !important',
+                },
+                '& .MuiSvgIcon-root': {
+                  color: 'inherit !important',
+                },
+              }} 
+            />
+            <Tab 
+              icon={<Public sx={{ fontSize: 24 }} />} 
+              label="Global" 
+              sx={{ 
+                color: 'text.primary !important',
+                '&.Mui-selected': {
+                  color: 'primary.main !important',
+                },
+                '& .MuiSvgIcon-root': {
+                  color: 'inherit !important',
+                },
+              }} 
+            />
           </Tabs>
         </Box>
       )}
@@ -332,14 +357,14 @@ const Dashboard: React.FC = () => {
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <TrendingUp sx={{ mr: 1, color: '#415A77' }} />
-                    <Typography variant="h6">Hidden</Typography>
+                    <Favorite sx={{ mr: 1, color: '#415A77' }} />
+                    <Typography variant="h6">Favorites</Typography>
                   </Box>
                   <Typography variant="h3" sx={{ color: '#415A77' }}>
-                    {hiddenArticles.length}
+                    {favoriteArticles.length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Articles you've hidden
+                    Articles you've favorited
                   </Typography>
                 </CardContent>
               </Card>
@@ -381,13 +406,22 @@ const Dashboard: React.FC = () => {
                             }
                           />
                           <ListItemSecondaryAction>
-                            <IconButton
-                              component={Link}
-                              to={`/articles/${article.id}`}
-                              size="small"
-                            >
-                              <Visibility />
-                            </IconButton>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleToggleFavorite(article.id)}
+                                sx={{ color: favoriteArticles.includes(article.id) ? '#e91e63' : '#ccc' }}
+                              >
+                                {favoriteArticles.includes(article.id) ? <Favorite /> : <FavoriteBorder />}
+                              </IconButton>
+                              <IconButton
+                                component={Link}
+                                to={`/articles/${article.id}`}
+                                size="small"
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </Box>
                           </ListItemSecondaryAction>
                         </ListItem>
                       ))}
@@ -404,17 +438,17 @@ const Dashboard: React.FC = () => {
               </Card>
             </Grid>
 
-            {/* Hidden Articles */}
+            {/* Favorite Articles */}
             <Grid item xs={12} md={4}>
               <Card>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
-                    Hidden Articles
+                    Favorite Articles
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  {hiddenArticleDetails.length > 0 ? (
+                  {favoriteArticleDetails.length > 0 ? (
                     <List>
-                      {hiddenArticleDetails.map((article) => (
+                      {favoriteArticleDetails.map((article) => (
                         <ListItem key={article.id} divider>
                           <ListItemText
                             primary={article.title}
@@ -431,21 +465,21 @@ const Dashboard: React.FC = () => {
                           <ListItemSecondaryAction>
                             <IconButton
                               size="small"
-                              onClick={() => handleUnhideArticle(article.id)}
-                              sx={{ color: '#778DA9' }}
+                              onClick={() => handleToggleFavorite(article.id)}
+                              sx={{ color: '#e91e63' }}
                             >
-                              <Restore />
+                              <Favorite />
                             </IconButton>
                           </ListItemSecondaryAction>
                         </ListItem>
                       ))}
                     </List>
                   ) : (
-                    <Typography color="text.secondary">No hidden articles</Typography>
+                    <Typography color="text.secondary">No favorite articles yet</Typography>
                   )}
-                  {hiddenArticles.length > hiddenArticleDetails.length && (
+                  {favoriteArticles.length > favoriteArticleDetails.length && (
                     <Typography variant="caption" color="text.secondary">
-                      And {hiddenArticles.length - hiddenArticleDetails.length} more...
+                      And {favoriteArticles.length - favoriteArticleDetails.length} more...
                     </Typography>
                   )}
                 </CardContent>
@@ -751,58 +785,8 @@ const Dashboard: React.FC = () => {
       </Grid>
       </TabPanel>
 
-      {/* Settings Dialog */}
-      <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>User Preferences</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={preferences.theme === 'dark'}
-                  onChange={(e) => setPreferences({
-                    ...preferences,
-                    theme: e.target.checked ? 'dark' : 'light'
-                  })}
-                />
-              }
-              label="Dark Theme"
-              sx={{ mb: 2 }}
-            />
-            
-            <TextField
-              fullWidth
-              label="Articles per page"
-              type="number"
-              value={preferences.articles_per_page}
-              onChange={(e) => setPreferences({
-                ...preferences,
-                articles_per_page: parseInt(e.target.value) || 20
-              })}
-              sx={{ mb: 2 }}
-              inputProps={{ min: 5, max: 100 }}
-            />
-            
-            <TextField
-              fullWidth
-              label="Default time range (days)"
-              type="number"
-              value={preferences.default_time_range}
-              onChange={(e) => setPreferences({
-                ...preferences,
-                default_time_range: parseInt(e.target.value) || 7
-              })}
-              inputProps={{ min: 1, max: 365 }}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setSettingsOpen(false)}>Cancel</Button>
-          <Button onClick={handleSavePreferences} variant="contained">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+
+
 
     </Container>
   );

@@ -16,30 +16,113 @@ article_comparator = ArticleComparator()
 
 @statistics_bp.route('/overview', methods=['GET'])
 def get_overview_statistics():
-    """Get overview statistics for the dashboard"""
+    """Get overview statistics for the dashboard and home page"""
     try:
+        from config.database import get_database
+        
+        db = get_database()
+        
         # Get storage statistics
         storage_stats = storage_service.get_storage_statistics()
         
         # Get article counts by source
         source_counts = storage_service.get_article_count_by_source()
         
+        # Get additional stats for home page
+        total_articles = storage_stats.get('total_articles', 0)
+        analyzed_articles = storage_stats.get('analyzed_articles', 0)
+        
+        # Get articles from last 30 days
+        thirty_days_ago = datetime.now() - timedelta(days=30)
+        recent_articles = db.articles.count_documents({
+            'scraped_at': {'$gte': thirty_days_ago}
+        })
+        
+        # Get total users count
+        total_users = db.users.count_documents({})
+        
+        # Get unique sources count
+        total_sources = len(source_counts) if source_counts else 0
+        
+        # Get articles by language (formatted for home page)
+        language_distribution = storage_stats.get('language_distribution', {})
+        language_stats = [{'_id': lang, 'count': count} for lang, count in language_distribution.items()]
+        
+        # Get bias distribution
+        bias_pipeline = [
+            {'$match': {'bias_scores.overall_bias_score': {'$exists': True}}},
+            {'$group': {
+                '_id': {
+                    '$cond': [
+                        {'$lt': ['$bias_scores.overall_bias_score', 0.4]},
+                        'Low Bias',
+                        {'$cond': [
+                            {'$lt': ['$bias_scores.overall_bias_score', 0.7]},
+                            'Moderate Bias',
+                            'High Bias'
+                        ]}
+                    ]
+                },
+                'count': {'$sum': 1}
+            }},
+            {'$sort': {'count': -1}}
+        ]
+        bias_distribution = list(db.articles.aggregate(bias_pipeline))
+        
+        # Get top sources by article count (formatted for home page)
+        top_sources = [{'_id': source, 'count': count} for source, count in source_counts.items()]
+        top_sources.sort(key=lambda x: x['count'], reverse=True)
+        top_sources = top_sources[:10]  # Limit to top 10
+        
         return jsonify({
-            'total_articles': storage_stats.get('total_articles', 0),
-            'analyzed_articles': storage_stats.get('analyzed_articles', 0),
+            'success': True,
+            'total_articles': total_articles,
+            'analyzed_articles': analyzed_articles,
             'unanalyzed_articles': storage_stats.get('unanalyzed_articles', 0),
-            'recent_articles': storage_stats.get('recent_articles', 0),
-            'language_distribution': storage_stats.get('language_distribution', {}),
+            'recent_articles': recent_articles,
+            'language_distribution': language_distribution,
             'source_distribution': source_counts,
             'analysis_coverage': {
-                'percentage': (storage_stats.get('analyzed_articles', 0) / 
-                             max(storage_stats.get('total_articles', 1), 1)) * 100
+                'percentage': (analyzed_articles / max(total_articles, 1)) * 100
+            },
+            # Additional stats for home page
+            'stats': {
+                'total_articles': total_articles,
+                'recent_articles': recent_articles,
+                'total_users': total_users,
+                'analyzed_articles': analyzed_articles,
+                'total_sources': total_sources,
+                'language_stats': language_stats,
+                'bias_distribution': bias_distribution,
+                'top_sources': top_sources,
+                'analysis_coverage': round((analyzed_articles / max(total_articles, 1)) * 100, 1)
             }
         })
         
     except Exception as e:
         logger.error(f"Failed to get overview statistics: {e}")
-        return jsonify({'error': 'Failed to retrieve overview statistics'}), 500
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve overview statistics',
+            'total_articles': 0,
+            'analyzed_articles': 0,
+            'unanalyzed_articles': 0,
+            'recent_articles': 0,
+            'language_distribution': {},
+            'source_distribution': {},
+            'analysis_coverage': {'percentage': 0},
+            'stats': {
+                'total_articles': 0,
+                'recent_articles': 0,
+                'total_users': 0,
+                'analyzed_articles': 0,
+                'total_sources': 0,
+                'language_stats': [],
+                'bias_distribution': [],
+                'top_sources': [],
+                'analysis_coverage': 0
+            }
+        }), 200
 
 
 @statistics_bp.route('/sources', methods=['GET'])
