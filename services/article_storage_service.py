@@ -5,6 +5,7 @@ from pymongo.errors import DuplicateKeyError
 from bson import ObjectId
 from models.article import Article
 from config.database import get_articles_collection, get_database
+from services.topic_extractor import TopicExtractor
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ class ArticleStorageService:
     def __init__(self):
         self._articles_collection = None
         self._database = None
+        self.topic_extractor = TopicExtractor()
     
     @property
     def articles_collection(self):
@@ -33,6 +35,14 @@ class ArticleStorageService:
     def store_article(self, article: Article) -> Optional[str]:
         """Store a single article with duplicate checking"""
         try:
+            # Extract topics if not already present
+            if not article.topics:
+                article.topics = self.topic_extractor.extract_topics(
+                    article.title, 
+                    article.content, 
+                    article.language
+                )
+            
             # Convert article to dictionary for MongoDB storage
             article_dict = article.to_dict()
             
@@ -264,3 +274,80 @@ class ArticleStorageService:
         except Exception as e:
             logger.error(f"Failed to get storage statistics: {e}")
             return {}
+    
+    def get_available_topics(self) -> List[str]:
+        """Get list of all available topics from stored articles"""
+        try:
+            # Get topics from topic extractor
+            predefined_topics = self.topic_extractor.get_available_topics()
+            
+            # Get topics from database
+            pipeline = [
+                {'$match': {'topics': {'$exists': True, '$ne': None, '$ne': []}}},
+                {'$unwind': '$topics'},
+                {'$group': {'_id': '$topics'}},
+                {'$sort': {'_id': 1}}
+            ]
+            
+            db_topics = [doc['_id'] for doc in self.articles_collection.aggregate(pipeline)]
+            
+            # Combine and deduplicate
+            all_topics = list(set(predefined_topics + db_topics))
+            all_topics.sort()
+            
+            return all_topics
+            
+        except Exception as e:
+            logger.error(f"Failed to get available topics: {e}")
+            return self.topic_extractor.get_available_topics()
+    
+    def get_articles_by_topic(self, topic: str, limit: int = 50, skip: int = 0) -> List[Article]:
+        """Get articles filtered by topic"""
+        try:
+            cursor = self.articles_collection.find(
+                {'topics': topic}
+            ).sort('publication_date', -1).skip(skip).limit(limit)
+            
+            articles = []
+            for doc in cursor:
+                try:
+                    article = Article.from_dict(doc)
+                    articles.append(article)
+                except Exception as e:
+                    logger.warning(f"Failed to convert document to Article: {e}")
+                    continue
+            
+            return articles
+            
+        except Exception as e:
+            logger.error(f"Failed to get articles by topic {topic}: {e}")
+            return []
+    
+    def get_articles_count_by_topic(self, topic: str) -> int:
+        """Get count of articles filtered by topic"""
+        try:
+            return self.articles_collection.count_documents({'topics': topic})
+        except Exception as e:
+            logger.error(f"Failed to get articles count by topic {topic}: {e}")
+            return 0
+    
+    def get_articles_count_by_source(self, source: str) -> int:
+        """Get count of articles filtered by source"""
+        try:
+            return self.articles_collection.count_documents({'source': source})
+        except Exception as e:
+            logger.error(f"Failed to get articles count by source {source}: {e}")
+            return 0
+    
+    def get_articles_count_by_date_range(self, start_date: datetime, end_date: datetime) -> int:
+        """Get count of articles in date range"""
+        try:
+            return self.articles_collection.count_documents({
+                'publication_date': {
+                    '$gte': start_date,
+                    '$lte': end_date
+                }
+            })
+        except Exception as e:
+            logger.error(f"Failed to get articles count by date range: {e}")
+            return 0

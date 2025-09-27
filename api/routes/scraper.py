@@ -273,7 +273,7 @@ def comprehensive_scrape():
         
         for i, article in enumerate(scraped_articles):
             try:
-                logger.info(f"Storing article {i+1}/{len(scraped_articles)}: {article.title[:50]}...")
+                logger.info(f"Processing article {i+1}/{len(scraped_articles)}: {article.title[:50]}...")
                 article_id = storage_service.store_article(article)
                 if article_id:
                     stored_count += 1
@@ -283,7 +283,7 @@ def comprehensive_scrape():
                         bias_scores = bias_analyzer.analyze_article_bias(article)
                         storage_service.update_article_bias_scores(article_id, bias_scores.to_dict())
                         analyzed_count += 1
-                        logger.info(f"Bias analysis completed for article {article_id}")
+                        logger.debug(f"Bias analysis completed for article {article_id}")
                     except Exception as e:
                         error_msg = f"Failed to analyze bias for article {article_id}: {e}"
                         logger.warning(error_msg)

@@ -7,7 +7,11 @@ from scrapers.daily_star_scraper import DailyStarScraper
 from scrapers.bd_pratidin_scraper import BDPratidinScraper
 from scrapers.ekattor_tv_scraper import EkattorTVScraper
 from scrapers.atn_news_scraper import ATNNewsScraper
+
 from scrapers.enhanced_prothom_alo_scraper import EnhancedProthomAloScraper
+from scrapers.enhanced_bd_pratidin_scraper import EnhancedBDPratidinScraper
+from scrapers.enhanced_daily_star_scraper import EnhancedDailyStarScraper
+from scrapers.jamuna_tv_scraper import JamunaTVScraper
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +25,16 @@ class ScraperManager:
             'daily_star': DailyStarScraper(),
             'bd_pratidin': BDPratidinScraper(),
             'ekattor_tv': EkattorTVScraper(),
-            'atn_news': ATNNewsScraper()
+            'atn_news': ATNNewsScraper(),
+            'jamuna_tv': JamunaTVScraper()
         }
         
         # Enhanced scrapers for comprehensive crawling
         self.enhanced_scrapers = {
-            'prothom_alo_enhanced': EnhancedProthomAloScraper()
+            'prothom_alo_enhanced': EnhancedProthomAloScraper(),
+            'bd_pratidin_enhanced': EnhancedBDPratidinScraper(),
+            'daily_star_enhanced': EnhancedDailyStarScraper(),
+            'jamuna_tv_enhanced': JamunaTVScraper()  # Jamuna TV scraper is already enhanced
         }
         
     def scrape_all_sources(self, max_articles_per_source: int = 20, max_workers: int = 3) -> Dict[str, List[Article]]:
@@ -82,8 +90,9 @@ class ScraperManager:
         enhanced_source_name = f"{source_name}_enhanced"
         
         if enhanced_source_name not in self.enhanced_scrapers:
-            logger.warning(f"Enhanced scraper not available for {source_name}, falling back to regular scraper")
-            return self.scrape_single_source(source_name, max_articles)
+            logger.warning(f"Enhanced scraper not available for {source_name}, falling back to regular scraper with higher limit")
+            # Use regular scraper but with higher article limit for "comprehensive" effect
+            return self.scrape_single_source(source_name, min(max_articles, 50))
         
         try:
             scraper = self.enhanced_scrapers[enhanced_source_name]
@@ -93,7 +102,9 @@ class ScraperManager:
             
         except Exception as e:
             logger.error(f"Failed to perform comprehensive scraping from {source_name}: {e}")
-            return []
+            # Fallback to regular scraper if enhanced scraper fails
+            logger.info(f"Falling back to regular scraper for {source_name}")
+            return self.scrape_single_source(source_name, min(max_articles, 50))
     
     def get_available_sources(self) -> List[str]:
         """Get list of available news sources"""

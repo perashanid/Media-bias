@@ -39,6 +39,7 @@ class Article:
     id: Optional[str] = None
     content_hash: Optional[str] = None
     bias_scores: Optional[BiasScore] = None
+    topics: Optional[list] = None
 
     def __post_init__(self):
         """Generate content hash after initialization"""

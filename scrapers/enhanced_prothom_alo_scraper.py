@@ -30,15 +30,19 @@ class EnhancedProthomAloScraper(EnhancedScraper):
         skip_patterns = [
             '/live-news/', '/photo-gallery/', '/video/',
             '/epaper/', '/jobs/', '/classifieds/',
-            '/weather/', '/prayer-time/', '/currency/'
+            '/weather/', '/prayer-time/', '/currency/',
+            '/api/', '/oauth/', '/auth/'  # Skip API and auth URLs
         ]
         
         # Check if URL contains patterns we want to follow
         has_follow_pattern = any(pattern in url.lower() for pattern in follow_patterns)
         has_skip_pattern = any(pattern in url.lower() for pattern in skip_patterns)
         
-        # For Prothom Alo, we want to follow article-like URLs
-        return has_follow_pattern and not has_skip_pattern
+        # For Prothom Alo, be more permissive - follow any URL that doesn't have skip patterns
+        # and either has follow patterns OR looks like an article URL
+        is_article_like = len(url.split('/')) >= 4 and not has_skip_pattern
+        
+        return (has_follow_pattern or is_article_like) and not has_skip_pattern
     
     def _is_article_page(self, soup, url: str) -> bool:
         """Override with Prothom Alo specific article detection"""

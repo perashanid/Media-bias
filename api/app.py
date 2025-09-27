@@ -23,6 +23,7 @@ from api.routes.comparison import comparison_bp
 from api.routes.statistics import statistics_bp
 from api.routes.scraper import scraper_bp
 from api.routes.auth import auth_bp
+from api.routes.stats import stats_bp
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +45,7 @@ app.register_blueprint(comparison_bp)
 app.register_blueprint(statistics_bp)
 app.register_blueprint(scraper_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(stats_bp)
 
 # Initialize services
 storage_service = ArticleStorageService()
@@ -136,12 +138,27 @@ def serve_static(filename):
 
 
 # Article endpoints
+@app.route('/api/topics', methods=['GET'])
+def get_available_topics():
+    """Get list of available topics"""
+    try:
+        topics = storage_service.get_available_topics()
+        return jsonify({
+            'topics': topics,
+            'count': len(topics)
+        })
+    except Exception as e:
+        logger.error(f"Failed to get available topics: {e}")
+        return jsonify({'error': 'Failed to retrieve topics'}), 500
+
+
 @app.route('/api/articles', methods=['GET'])
 def get_articles():
     """Get articles with optional filtering"""
     try:
         # Get query parameters
         source = request.args.get('source')
+        topic = request.args.get('topic')
         limit = int(request.args.get('limit', 50))
         skip = int(request.args.get('skip', 0))
         start_date = request.args.get('start_date')
@@ -153,7 +170,10 @@ def get_articles():
         
         articles = []
         
-        if source:
+        if topic:
+            # Get articles by topic
+            articles = storage_service.get_articles_by_topic(topic, limit, skip)
+        elif source:
             # Get articles by source
             articles = storage_service.get_articles_by_source(source, limit, skip)
         elif start_date and end_date:
@@ -183,11 +203,28 @@ def get_articles():
                 article_dict['id'] = str(article_dict.pop('_id'))
             articles_json.append(article_dict)
         
+        # Get total count for pagination
+        total_count = 0
+        if topic:
+            total_count = storage_service.get_articles_count_by_topic(topic)
+        elif source:
+            total_count = storage_service.get_articles_count_by_source(source)
+        else:
+            # For date range, get total count in that range
+            if start_date and end_date:
+                total_count = storage_service.get_articles_count_by_date_range(start_dt, end_dt)
+            else:
+                end_dt = datetime.now()
+                start_dt = end_dt - timedelta(days=7)
+                total_count = storage_service.get_articles_count_by_date_range(start_dt, end_dt)
+        
         return jsonify({
             'articles': articles_json,
             'count': len(articles_json),
+            'total_count': total_count,
             'limit': limit,
-            'skip': skip
+            'skip': skip,
+            'has_more': skip + len(articles_json) < total_count
         })
         
     except Exception as e:

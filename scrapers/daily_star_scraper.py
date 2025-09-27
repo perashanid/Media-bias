@@ -21,13 +21,6 @@ class DailyStarScraper(BaseScraper):
         # Main categories to scrape
         categories = [
             "",  # Homepage
-            "/news/bangladesh",
-            "/news/politics",
-            "/news/world",
-            "/business",
-            "/sports",
-            "/lifestyle",
-            "/opinion"
         ]
         
         for category in categories:
@@ -43,18 +36,16 @@ class DailyStarScraper(BaseScraper):
             try:
                 soup = BeautifulSoup(response.content, 'html.parser')
                 
-                # Find article links - The Daily Star uses various link patterns
+                # Find article links - Updated selectors based on current structure
                 link_selectors = [
+                    'h3 a',  # Main article headlines
+                    'h4 a',  # Secondary headlines
+                    'h2 a',  # Section headlines
                     'a[href*="/news/"]',
                     'a[href*="/business/"]',
                     'a[href*="/sports/"]',
                     'a[href*="/lifestyle/"]',
-                    'a[href*="/opinion/"]',
-                    '.story-card a',
-                    '.news-item a',
-                    '.headline a',
-                    'h2 a',
-                    'h3 a'
+                    'a[href*="/opinion/"]'
                 ]
                 
                 for selector in link_selectors:
@@ -96,7 +87,12 @@ class DailyStarScraper(BaseScraper):
             '/lifestyle/',
             '/opinion/',
             '/editorial/',
-            '/city/'
+            '/city/',
+            '/health/',
+            '/star-youth/',
+            '/showbiz/',
+            '/slow-reads/',
+            '/star-multimedia/'
         ]
         
         # Exclude non-article URLs
@@ -111,14 +107,20 @@ class DailyStarScraper(BaseScraper):
             '/page/',
             '.jpg',
             '.png',
-            '.pdf'
+            '.pdf',
+            '/homepage',
+            '/archive'
         ]
+        
+        # Must have a specific article ID pattern (numbers at the end)
+        import re
+        has_article_id = re.search(r'-\d{7}$', url) or '/news/' in url or '/opinion/' in url or '/business/' in url
         
         # Check if URL contains article patterns and doesn't contain exclude patterns
         has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
         
-        return has_article_pattern and not has_exclude_pattern
+        return has_article_pattern and not has_exclude_pattern and has_article_id
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from The Daily Star page"""
@@ -143,13 +145,16 @@ class DailyStarScraper(BaseScraper):
                 logger.warning(f"Could not extract title from {url}")
                 return None
             
-            # Extract content
+            # Extract content - Updated selectors based on current structure
             content_selectors = [
                 '.story-content',
-                '.article-content',
+                '.article-content', 
                 '.news-content',
                 '.content-body',
-                '.story-body'
+                '.story-body',
+                'article',  # Generic article tag
+                '.post-content',
+                '.entry-content'
             ]
             
             content = ""
@@ -157,11 +162,22 @@ class DailyStarScraper(BaseScraper):
                 content_elem = soup.select_one(selector)
                 if content_elem:
                     # Remove unwanted elements
-                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news'):
+                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news, .sidebar, nav, header, footer'):
                         unwanted.decompose()
                     
                     content = self._clean_text(content_elem.get_text())
-                    break
+                    if len(content) > 100:  # Ensure we have substantial content
+                        break
+            
+            # Fallback: try to get content from paragraphs if main content not found
+            if len(content) < 100:
+                paragraphs = soup.find_all('p')
+                content_parts = []
+                for p in paragraphs:
+                    p_text = self._clean_text(p.get_text())
+                    if len(p_text) > 20:  # Skip very short paragraphs
+                        content_parts.append(p_text)
+                content = ' '.join(content_parts)
             
             if not content:
                 logger.warning(f"Could not extract content from {url}")

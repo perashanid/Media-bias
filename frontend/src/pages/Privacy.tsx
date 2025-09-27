@@ -220,6 +220,15 @@ const Privacy: React.FC = () => {
             ? 'rgba(119, 141, 169, 0.3)' 
             : 'rgba(13, 27, 42, 0.1)',
         }}>
+          <Typography variant="h6" gutterBottom color="primary">
+            🎓 Educational Purpose Only
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+            <strong>Important Notice:</strong> This platform is developed solely for educational and research purposes. 
+            The developer does not claim any rights to the scraped news content and has no intention to use, 
+            redistribute, or monetize the content in any way. All news articles remain the intellectual property 
+            of their respective publishers.
+          </Typography>
           <Typography variant="h6" gutterBottom>
             Quick Summary
           </Typography>
@@ -301,10 +310,10 @@ const Privacy: React.FC = () => {
           </Typography>
           <Box sx={{ pl: 2 }}>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Email:</strong> privacy@mediabias.com
+              <strong>Email:</strong> shanidsajjatz@gmail.com
             </Typography>
             <Typography variant="body1" sx={{ mb: 1 }}>
-              <strong>Address:</strong> 123 Tech Street, Digital City, DC 12345
+              <strong>Purpose:</strong> Educational research and development only
             </Typography>
             <Typography variant="body1">
               <strong>Response Time:</strong> We will respond to privacy requests within 30 days

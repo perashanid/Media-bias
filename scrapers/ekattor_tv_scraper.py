@@ -18,16 +18,9 @@ class EkattorTVScraper(BaseScraper):
         """Get article URLs from Ekattor TV homepage and category pages"""
         article_urls = []
         
-        # Main categories to scrape
+        # Focus on homepage for better results
         categories = [
             "",  # Homepage
-            "/bangladesh",
-            "/politics",
-            "/international",
-            "/business",
-            "/sports",
-            "/entertainment",
-            "/lifestyle"
         ]
         
         for category in categories:
@@ -43,20 +36,17 @@ class EkattorTVScraper(BaseScraper):
             try:
                 soup = BeautifulSoup(response.content, 'html.parser')
                 
-                # Find article links - Ekattor TV uses various link patterns
+                # Updated selectors based on debug findings
                 link_selectors = [
-                    'a[href*="/bangladesh/"]',
+                    'a[href*="/news/"]',  # Main news articles
+                    'h2 a',  # Headlines
+                    'a[href*="/national/"]',
                     'a[href*="/politics/"]',
                     'a[href*="/international/"]',
+                    'a[href*="/capital/"]',
                     'a[href*="/business/"]',
                     'a[href*="/sports/"]',
-                    'a[href*="/entertainment/"]',
-                    'a[href*="/lifestyle/"]',
-                    '.news-item a',
-                    '.story-card a',
-                    '.news-card a',
-                    'h2 a',
-                    'h3 a'
+                    'a[href*="/entertainment/"]'
                 ]
                 
                 for selector in link_selectors:
@@ -64,8 +54,10 @@ class EkattorTVScraper(BaseScraper):
                     for link in links:
                         href = link.get('href')
                         if href:
-                            # Convert relative URLs to absolute
-                            if href.startswith('/'):
+                            # Handle relative URLs
+                            if href.startswith('//ekattor.tv/'):
+                                full_url = f"https:{href}"
+                            elif href.startswith('/'):
                                 full_url = f"{self.base_url}{href}"
                             elif href.startswith('http'):
                                 full_url = href
@@ -92,14 +84,15 @@ class EkattorTVScraper(BaseScraper):
         """Check if URL is likely an article URL"""
         # Ekattor TV article URLs typically contain these patterns
         article_patterns = [
-            '/bangladesh/',
+            '/news/',
+            '/national/',
             '/politics/',
             '/international/',
+            '/capital/',
             '/business/',
             '/sports/',
             '/entertainment/',
             '/lifestyle/',
-            '/news/',
             '/country/'
         ]
         
@@ -116,14 +109,20 @@ class EkattorTVScraper(BaseScraper):
             '/tv-schedule/',
             '.jpg',
             '.png',
-            '.pdf'
+            '.pdf',
+            '/archive',
+            '/category'
         ]
+        
+        # Must have article ID pattern (numbers at the end)
+        import re
+        has_article_id = re.search(r'/\d{5}/', url) or '/news/' in url
         
         # Check if URL contains article patterns and doesn't contain exclude patterns
         has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
         
-        return has_article_pattern and not has_exclude_pattern
+        return has_article_pattern and not has_exclude_pattern and has_article_id
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from Ekattor TV page"""
@@ -149,14 +148,17 @@ class EkattorTVScraper(BaseScraper):
                 logger.warning(f"Could not extract title from {url}")
                 return None
             
-            # Extract content
+            # Extract content - Updated selectors based on debug findings
             content_selectors = [
+                '.content',  # Found in debug
                 '.news-content',
                 '.story-content',
                 '.article-content',
                 '.content-body',
                 '.news-details',
-                '.description'
+                '.description',
+                'article',
+                '.post-content'
             ]
             
             content = ""
@@ -164,11 +166,22 @@ class EkattorTVScraper(BaseScraper):
                 content_elem = soup.select_one(selector)
                 if content_elem:
                     # Remove unwanted elements
-                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news, .video-player'):
+                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news, .video-player, .sidebar, nav, header, footer'):
                         unwanted.decompose()
                     
                     content = self._clean_text(content_elem.get_text())
-                    break
+                    if len(content) > 100:  # Ensure we have substantial content
+                        break
+            
+            # Fallback: try to get content from paragraphs if main content not found
+            if len(content) < 100:
+                paragraphs = soup.find_all('p')
+                content_parts = []
+                for p in paragraphs:
+                    p_text = self._clean_text(p.get_text())
+                    if len(p_text) > 20:  # Skip very short paragraphs
+                        content_parts.append(p_text)
+                content = ' '.join(content_parts)
             
             if not content:
                 logger.warning(f"Could not extract content from {url}")

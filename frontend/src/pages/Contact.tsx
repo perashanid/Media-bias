@@ -65,19 +65,13 @@ const Contact: React.FC = () => {
     {
       icon: <Email />,
       title: 'Email',
-      content: 'contact@mediabias.com',
-      link: 'mailto:contact@mediabias.com',
-    },
-    {
-      icon: <Phone />,
-      title: 'Phone',
-      content: '+1 (555) 123-4567',
-      link: 'tel:+15551234567',
+      content: 'shanidsajjatz@gmail.com',
+      link: 'mailto:shanidsajjatz@gmail.com',
     },
     {
       icon: <LocationOn />,
-      title: 'Address',
-      content: '123 Tech Street, Digital City, DC 12345',
+      title: 'Purpose',
+      content: 'Educational Research & Development',
       link: null,
     },
   ];
@@ -119,8 +113,8 @@ const Contact: React.FC = () => {
           Contact Us
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-          Have questions about our media bias detection system? We'd love to hear from you.
-          Send us a message and we'll respond as soon as possible.
+          Have questions about our educational media bias detection system? This platform is developed 
+          for research and learning purposes only. Send us a message and we'll respond as soon as possible.
         </Typography>
       </Box>
 

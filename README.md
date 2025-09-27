@@ -135,6 +135,7 @@ Currently supported news sources:
 - BD Pratidin
 - Ekattor TV
 - ATN News
+- Jamuna TV
 
 ## Bias Analysis
 

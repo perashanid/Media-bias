@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
       }))
     : [];
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  const COLORS = ['#0D1B2A', '#1B263B', '#415A77', '#778DA9', '#E0E1DD'];
 
   return (
     <Container maxWidth="lg">
@@ -332,10 +332,10 @@ const Dashboard: React.FC = () => {
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <TrendingUp color="success" sx={{ mr: 1 }} />
+                    <TrendingUp sx={{ mr: 1, color: '#415A77' }} />
                     <Typography variant="h6">Hidden</Typography>
                   </Box>
-                  <Typography variant="h3" color="success">
+                  <Typography variant="h3" sx={{ color: '#415A77' }}>
                     {hiddenArticles.length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -368,9 +368,13 @@ const Dashboard: React.FC = () => {
                                   <Chip
                                     size="small"
                                     label={`Bias: ${(article.bias_scores.overall_bias_score * 100).toFixed(0)}%`}
-                                    color={article.bias_scores.overall_bias_score < 0.3 ? 'success' : 
-                                           article.bias_scores.overall_bias_score < 0.6 ? 'warning' : 'error'}
-                                    sx={{ mt: 0.5 }}
+                                    sx={{ 
+                                      mt: 0.5,
+                                      bgcolor: article.bias_scores.overall_bias_score < 0.4 ? '#E0E1DD' : 
+                                               article.bias_scores.overall_bias_score < 0.7 ? '#778DA9' : '#415A77',
+                                      color: article.bias_scores.overall_bias_score < 0.4 ? '#0D1B2A' : 
+                                             article.bias_scores.overall_bias_score < 0.7 ? '#0D1B2A' : '#E0E1DD'
+                                    }}
                                   />
                                 )}
                               </Box>
@@ -428,7 +432,7 @@ const Dashboard: React.FC = () => {
                             <IconButton
                               size="small"
                               onClick={() => handleUnhideArticle(article.id)}
-                              color="warning"
+                              sx={{ color: '#778DA9' }}
                             >
                               <Restore />
                             </IconButton>
@@ -470,10 +474,10 @@ const Dashboard: React.FC = () => {
                 display: 'inline-flex',
                 p: 2,
                 borderRadius: '50%',
-                bgcolor: 'primary.50',
+                bgcolor: '#E0E1DD',
                 mb: 2,
               }}>
-                <Assessment sx={{ fontSize: 32, color: 'primary.main' }} />
+                <Assessment sx={{ fontSize: 32, color: '#0D1B2A' }} />
               </Box>
               <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Total Articles
@@ -500,10 +504,10 @@ const Dashboard: React.FC = () => {
                 display: 'inline-flex',
                 p: 2,
                 borderRadius: '50%',
-                bgcolor: 'success.50',
+                bgcolor: '#E0E1DD',
                 mb: 2,
               }}>
-                <Psychology sx={{ fontSize: 32, color: 'success.main' }} />
+                <Psychology sx={{ fontSize: 32, color: '#1B263B' }} />
               </Box>
               <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Analyzed Articles
@@ -533,10 +537,10 @@ const Dashboard: React.FC = () => {
                 display: 'inline-flex',
                 p: 2,
                 borderRadius: '50%',
-                bgcolor: 'info.50',
+                bgcolor: '#E0E1DD',
                 mb: 2,
               }}>
-                <TrendingUp sx={{ fontSize: 32, color: 'info.main' }} />
+                <TrendingUp sx={{ fontSize: 32, color: '#415A77' }} />
               </Box>
               <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Recent Articles
@@ -566,10 +570,10 @@ const Dashboard: React.FC = () => {
                 display: 'inline-flex',
                 p: 2,
                 borderRadius: '50%',
-                bgcolor: 'warning.50',
+                bgcolor: '#E0E1DD',
                 mb: 2,
               }}>
-                <Speed sx={{ fontSize: 32, color: 'warning.main' }} />
+                <Speed sx={{ fontSize: 32, color: '#778DA9' }} />
               </Box>
               <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Pending Analysis
@@ -632,7 +636,7 @@ const Dashboard: React.FC = () => {
                   <XAxis dataKey="source" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="articles" fill="#1976d2" />
+                  <Bar dataKey="articles" fill="#1B263B" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -655,7 +659,7 @@ const Dashboard: React.FC = () => {
                     labelLine={false}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
-                    fill="#8884d8"
+                    fill="#415A77"
                     dataKey="value"
                   >
                     {languageData.map((_, index) => (
@@ -687,19 +691,19 @@ const Dashboard: React.FC = () => {
                     <Line
                       type="monotone"
                       dataKey="average_overall_bias"
-                      stroke="#1976d2"
+                      stroke="#0D1B2A"
                       name="Overall Bias"
                     />
                     <Line
                       type="monotone"
                       dataKey="average_sentiment"
-                      stroke="#00C49F"
+                      stroke="#1B263B"
                       name="Sentiment"
                     />
                     <Line
                       type="monotone"
                       dataKey="average_political_bias"
-                      stroke="#FF8042"
+                      stroke="#415A77"
                       name="Political Bias"
                     />
                   </LineChart>

@@ -84,7 +84,7 @@ class EnhancedScraper(BaseScraper):
             # Check if this page is an article
             if self._is_article_page(soup, url):
                 self.article_urls.add(url)
-                logger.debug(f"Found article: {url}")
+                logger.info(f"Found article: {url}")
             
             # Find all links on this page
             links = soup.find_all('a', href=True)
@@ -97,6 +97,8 @@ class EnhancedScraper(BaseScraper):
                 # Filter out unwanted URLs
                 if self._should_follow_link(full_url):
                     page_links.append(full_url)
+            
+            logger.info(f"Found {len(page_links)} valid links on {url} (depth {depth})")
             
             # Limit the number of links to follow per page to avoid infinite crawling
             random.shuffle(page_links)
@@ -137,14 +139,17 @@ class EnhancedScraper(BaseScraper):
         if any(url.lower().endswith(ext) for ext in skip_extensions):
             return False
         
-        # Skip certain URL patterns
+        # Skip certain URL patterns - be more specific to avoid blocking legitimate articles
         skip_patterns = [
             '/search', '/tag/', '/author/', '/category/',
             '/login', '/register', '/admin', '/wp-admin',
             '/feed', '/rss', '/sitemap', '/robots.txt',
             'javascript:', 'mailto:', 'tel:', '#',
             '/advertisement', '/ads/', '/banner',
-            '/share', '/print', '/email'
+            '/share', '/print', '/email',
+            '/api/auth/',  # Skip OAuth/API authentication URLs
+            '/oauth/',
+            '/callback'
         ]
         
         if any(pattern in url.lower() for pattern in skip_patterns):
@@ -154,6 +159,10 @@ class EnhancedScraper(BaseScraper):
     
     def _is_article_page(self, soup: BeautifulSoup, url: str) -> bool:
         """Determine if this page contains an article"""
+        # Skip homepage and category pages
+        if url.rstrip('/') == self.base_url.rstrip('/'):
+            return False
+        
         # Check for common article indicators
         article_indicators = [
             # HTML5 article tag
@@ -164,26 +173,33 @@ class EnhancedScraper(BaseScraper):
             soup.find(id=lambda x: x and any(term in x.lower() for term in 
                      ['article', 'story', 'news', 'post', 'content'])),
             # Multiple paragraphs (likely article content)
-            len(soup.find_all('p')) > 3,
+            len(soup.find_all('p')) > 2,
             # Article-like URL patterns
             any(pattern in url.lower() for pattern in [
                 '/news/', '/article/', '/story/', '/post/',
                 '/bangladesh/', '/politics/', '/international/',
-                '/business/', '/sports/', '/entertainment/'
+                '/business/', '/sports/', '/entertainment/',
+                '/opinion/', '/lifestyle/', '/technology/',
+                '/health/', '/education/', '/economics/'
             ])
         ]
         
         # Must have a title
         title_found = bool(soup.find('h1') or soup.find('title'))
         
-        # Must have substantial text content
+        # Must have substantial text content (reduced threshold)
         text_content = soup.get_text()
-        has_content = len(text_content.strip()) > 500
+        has_content = len(text_content.strip()) > 300
         
         # Check if any article indicators are present
         has_indicators = any(article_indicators)
         
-        return title_found and has_content and has_indicators
+        # More permissive: if it has content and title, and URL looks like an article, consider it an article
+        url_looks_like_article = len(url.split('/')) >= 4 and not any(skip in url.lower() for skip in [
+            '/category/', '/tag/', '/author/', '/search', '/page/', '/api/', '/auth/'
+        ])
+        
+        return title_found and has_content and (has_indicators or url_looks_like_article)
     
     def _get_article_urls(self, max_articles: int) -> List[str]:
         """Override base method - not used in enhanced scraper"""

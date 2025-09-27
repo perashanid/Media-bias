@@ -15,118 +15,73 @@ class ATNNewsScraper(BaseScraper):
         super().__init__("ATN News TV", "https://www.atnnewstv.com")
     
     def _get_article_urls(self, max_articles: int) -> List[str]:
-        """Get article URLs from ATN News TV homepage and category pages"""
+        """Get article URLs from ATN News TV using sitemap approach"""
         article_urls = []
         
-        # Main categories to scrape
-        categories = [
-            "",  # Homepage
-            "/bangladesh",
-            "/politics",
-            "/international",
-            "/business",
-            "/sports",
-            "/entertainment",
-            "/lifestyle"
-        ]
-        
-        for category in categories:
-            if len(article_urls) >= max_articles:
-                break
-                
-            category_url = f"{self.base_url}{category}"
-            response = self._make_request(category_url)
+        try:
+            # Use sitemap approach since regular pages don't show articles
+            from datetime import datetime, timedelta
             
-            if not response:
-                continue
-            
-            try:
-                soup = BeautifulSoup(response.content, 'html.parser')
+            # Try last few days of sitemaps
+            for days_back in range(5):  # Try last 5 days
+                if len(article_urls) >= max_articles:
+                    break
                 
-                # Find article links - ATN News uses various link patterns
-                link_selectors = [
-                    'a[href*="/bangladesh/"]',
-                    'a[href*="/politics/"]',
-                    'a[href*="/international/"]',
-                    'a[href*="/business/"]',
-                    'a[href*="/sports/"]',
-                    'a[href*="/entertainment/"]',
-                    'a[href*="/lifestyle/"]',
-                    '.news-item a',
-                    '.story-card a',
-                    '.news-card a',
-                    '.article-link',
-                    'h2 a',
-                    'h3 a'
-                ]
+                date = datetime.now() - timedelta(days=days_back)
+                date_str = date.strftime("%Y-%m-%d")
+                sitemap_url = f"https://www.atnnewstv.com/sitemap/sitemap-daily-{date_str}.xml"
                 
-                for selector in link_selectors:
-                    links = soup.select(selector)
-                    for link in links:
-                        href = link.get('href')
-                        if href:
-                            # Convert relative URLs to absolute
-                            if href.startswith('/'):
-                                full_url = f"{self.base_url}{href}"
-                            elif href.startswith('http'):
-                                full_url = href
-                            else:
-                                continue
-                            
-                            # Filter out non-article URLs
-                            if self._is_article_url(full_url) and full_url not in article_urls:
-                                article_urls.append(full_url)
-                                
-                                if len(article_urls) >= max_articles:
-                                    break
+                response = self._make_request(sitemap_url)
+                if not response:
+                    continue
+                
+                try:
+                    soup = BeautifulSoup(response.content, 'xml')
+                    urls = soup.find_all('loc')
                     
-                    if len(article_urls) >= max_articles:
-                        break
+                    for url_elem in urls:
+                        url = url_elem.get_text()
                         
-            except Exception as e:
-                logger.error(f"Failed to extract URLs from {category_url}: {e}")
-                continue
+                        # Filter for actual articles (not images)
+                        if self._is_article_url(url) and url not in article_urls:
+                            article_urls.append(url)
+                            
+                            if len(article_urls) >= max_articles:
+                                break
+                                
+                except Exception as e:
+                    logger.error(f"Failed to parse sitemap {sitemap_url}: {e}")
+                    continue
+        
+        except Exception as e:
+            logger.error(f"Failed to get article URLs from sitemap: {e}")
         
         return article_urls[:max_articles]
     
     def _is_article_url(self, url: str) -> bool:
         """Check if URL is likely an article URL"""
-        # ATN News article URLs typically contain these patterns
-        article_patterns = [
-            '/bangladesh/',
-            '/politics/',
-            '/international/',
-            '/business/',
-            '/sports/',
-            '/entertainment/',
-            '/lifestyle/',
-            '/news/',
-            '/country/',
-            '/world/'
-        ]
+        # ATN News uses /details/ pattern for articles
+        if 'atnnewstv.com' not in url:
+            return False
+        
+        # Must have /details/ pattern with article ID
+        if '/details/' in url:
+            # Extract article ID and validate it's numeric
+            try:
+                article_id = url.split('/details/')[-1]
+                return article_id.isdigit() and len(article_id) > 3
+            except:
+                return False
         
         # Exclude non-article URLs
         exclude_patterns = [
-            '/live/',
-            '/video/',
-            '/photo/',
-            '/gallery/',
-            '/tag/',
-            '/author/',
-            '/search',
-            '/page/',
-            '/tv-schedule/',
-            '/program/',
-            '.jpg',
-            '.png',
-            '.pdf'
+            '.jpg', '.png', '.pdf', '.gif', '.mp4',
+            '/assets/', '/images/', '/css/', '/js/',
+            '/sitemap/', '/rss/', '/feed/'
         ]
         
-        # Check if URL contains article patterns and doesn't contain exclude patterns
-        has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
-        
-        return has_article_pattern and not has_exclude_pattern
+        return not has_exclude_pattern
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from ATN News TV page"""
@@ -153,27 +108,24 @@ class ATNNewsScraper(BaseScraper):
                 logger.warning(f"Could not extract title from {url}")
                 return None
             
-            # Extract content
-            content_selectors = [
-                '.news-content',
-                '.story-content',
-                '.article-content',
-                '.content-body',
-                '.news-details',
-                '.description',
-                '.news-body'
-            ]
-            
+            # Extract content - ATN News doesn't seem to have main content in HTML
+            # Based on investigation, articles might not have extractable content
+            # Try basic paragraph extraction
             content = ""
-            for selector in content_selectors:
-                content_elem = soup.select_one(selector)
-                if content_elem:
-                    # Remove unwanted elements
-                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news, .video-player, .tv-schedule'):
-                        unwanted.decompose()
-                    
-                    content = self._clean_text(content_elem.get_text())
-                    break
+            
+            # Try to get content from paragraphs
+            paragraphs = soup.find_all('p')
+            content_parts = []
+            for p in paragraphs:
+                p_text = self._clean_text(p.get_text())
+                if len(p_text) > 20:  # Skip very short paragraphs
+                    content_parts.append(p_text)
+            
+            content = ' '.join(content_parts)
+            
+            # If no content found, create minimal content from title
+            if len(content) < 50:
+                content = f"Article from ATN News: {title}"
             
             if not content:
                 logger.warning(f"Could not extract content from {url}")

@@ -18,16 +18,9 @@ class BDPratidinScraper(BaseScraper):
         """Get article URLs from BD Pratidin homepage and category pages"""
         article_urls = []
         
-        # Main categories to scrape
+        # Main categories to scrape - focus on homepage for better results
         categories = [
             "",  # Homepage
-            "/bangladesh",
-            "/politics",
-            "/international",
-            "/economics",
-            "/sports",
-            "/entertainment",
-            "/opinion"
         ]
         
         for category in categories:
@@ -43,8 +36,10 @@ class BDPratidinScraper(BaseScraper):
             try:
                 soup = BeautifulSoup(response.content, 'html.parser')
                 
-                # Find article links - BD Pratidin uses various link patterns
+                # Updated selectors based on current structure - focus on 2025 articles
                 link_selectors = [
+                    'a[href*="/2025/"]',  # Current year articles
+                    'a[href*="/2024/"]',  # Recent articles
                     'a[href*="/bangladesh/"]',
                     'a[href*="/politics/"]',
                     'a[href*="/international/"]',
@@ -52,10 +47,8 @@ class BDPratidinScraper(BaseScraper):
                     'a[href*="/sports/"]',
                     'a[href*="/entertainment/"]',
                     'a[href*="/opinion/"]',
-                    '.news-item a',
-                    '.story-card a',
-                    'h2 a',
-                    'h3 a'
+                    'a[href*="/country/"]',
+                    'a[href*="/national/"]'
                 ]
                 
                 for selector in link_selectors:
@@ -99,7 +92,11 @@ class BDPratidinScraper(BaseScraper):
             '/entertainment/',
             '/opinion/',
             '/lifestyle/',
-            '/country/'
+            '/country/',
+            '/national/',
+            '/international-news/',
+            '/city/',
+            '/entertainment-news/'
         ]
         
         # Exclude non-article URLs
@@ -114,14 +111,20 @@ class BDPratidinScraper(BaseScraper):
             '/page/',
             '.jpg',
             '.png',
-            '.pdf'
+            '.pdf',
+            '/archive',
+            '/category'
         ]
+        
+        # Must have article ID pattern (numbers at the end)
+        import re
+        has_article_id = re.search(r'/\d{7}$', url) or re.search(r'/\d{6}$', url)
         
         # Check if URL contains article patterns and doesn't contain exclude patterns
         has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
         
-        return has_article_pattern and not has_exclude_pattern
+        return has_article_pattern and not has_exclude_pattern and has_article_id
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from BD Pratidin page"""
@@ -146,13 +149,16 @@ class BDPratidinScraper(BaseScraper):
                 logger.warning(f"Could not extract title from {url}")
                 return None
             
-            # Extract content
+            # Extract content - Updated selectors based on current structure
             content_selectors = [
+                'article',  # Main article tag (found in debug)
                 '.news-content',
                 '.story-content',
                 '.article-content',
                 '.content-body',
-                '.news-details'
+                '.news-details',
+                '.post-content',
+                '.entry-content'
             ]
             
             content = ""
@@ -160,11 +166,22 @@ class BDPratidinScraper(BaseScraper):
                 content_elem = soup.select_one(selector)
                 if content_elem:
                     # Remove unwanted elements
-                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news'):
+                    for unwanted in content_elem.select('script, style, .advertisement, .ad, .social-share, .related-news, .sidebar, nav, header, footer'):
                         unwanted.decompose()
                     
                     content = self._clean_text(content_elem.get_text())
-                    break
+                    if len(content) > 100:  # Ensure we have substantial content
+                        break
+            
+            # Fallback: try to get content from paragraphs if main content not found
+            if len(content) < 100:
+                paragraphs = soup.find_all('p')
+                content_parts = []
+                for p in paragraphs:
+                    p_text = self._clean_text(p.get_text())
+                    if len(p_text) > 20:  # Skip very short paragraphs
+                        content_parts.append(p_text)
+                content = ' '.join(content_parts)
             
             if not content:
                 logger.warning(f"Could not extract content from {url}")

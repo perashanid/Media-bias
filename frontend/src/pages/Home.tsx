@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -12,6 +12,9 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  CircularProgress,
+  Chip,
+  CardContent,
 } from '@mui/material';
 import {
   Assessment,
@@ -21,12 +24,48 @@ import {
   CloudDownload,
   CheckCircle,
   Psychology,
+  TrendingUp,
+  People,
+  Language,
+  BarChart,
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { statsApi } from '../services/api';
+
+interface OverviewStats {
+  total_articles: number;
+  recent_articles: number;
+  total_users: number;
+  analyzed_articles: number;
+  total_sources: number;
+  analysis_coverage: number;
+  language_stats: Array<{ _id: string; count: number }>;
+  bias_distribution: Array<{ _id: string; count: number }>;
+  top_sources: Array<{ _id: string; count: number }>;
+}
 
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const [stats, setStats] = useState<OverviewStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await statsApi.getOverview();
+        if (response.success) {
+          setStats(response.stats);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
   
   return (
     <Container maxWidth="lg">
@@ -87,6 +126,193 @@ const Home: React.FC = () => {
         </Box>
       </Box>
 
+      {/* Statistics Section */}
+      {!statsLoading && stats && (
+        <Paper sx={{ 
+          p: { xs: 4, md: 6 }, 
+          mb: 8, 
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'grey.200',
+          borderRadius: 3,
+        }}>
+          <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 6, color: 'primary.main' }}>
+            Platform Statistics
+          </Typography>
+          
+          <Grid container spacing={4} sx={{ mb: 6 }}>
+            {/* Total Articles */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                textAlign: 'center', 
+                p: 3,
+                height: '100%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+                }
+              }}>
+                <CardContent>
+                  <Article sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    {stats.total_articles.toLocaleString()}
+                  </Typography>
+                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                    Total Articles
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Analyzed Articles */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                textAlign: 'center', 
+                p: 3,
+                height: '100%',
+                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                color: 'white',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 25px rgba(240, 147, 251, 0.3)',
+                }
+              }}>
+                <CardContent>
+                  <Psychology sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    {stats.analyzed_articles.toLocaleString()}
+                  </Typography>
+                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                    Analyzed Articles
+                  </Typography>
+                  <Chip 
+                    label={`${stats.analysis_coverage}% Coverage`} 
+                    size="small" 
+                    sx={{ 
+                      mt: 1, 
+                      bgcolor: 'rgba(255,255,255,0.2)', 
+                      color: 'white',
+                      fontWeight: 600 
+                    }} 
+                  />
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Total Users */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                textAlign: 'center', 
+                p: 3,
+                height: '100%',
+                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                color: 'white',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 25px rgba(79, 172, 254, 0.3)',
+                }
+              }}>
+                <CardContent>
+                  <People sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    {stats.total_users.toLocaleString()}
+                  </Typography>
+                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                    Registered Users
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* News Sources */}
+            <Grid item xs={12} sm={6} md={3}>
+              <Card sx={{ 
+                textAlign: 'center', 
+                p: 3,
+                height: '100%',
+                background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+                color: 'white',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 8px 25px rgba(250, 112, 154, 0.3)',
+                }
+              }}>
+                <CardContent>
+                  <TrendingUp sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                    {stats.total_sources}
+                  </Typography>
+                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                    News Sources
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* Additional Stats */}
+          <Grid container spacing={4}>
+            {/* Language Distribution */}
+            <Grid item xs={12} md={6}>
+              <Card sx={{ p: 3, height: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Language sx={{ fontSize: 32, color: '#1B263B', mr: 2 }} />
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    Language Distribution
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {stats.language_stats.map((lang, index) => (
+                    <Chip
+                      key={lang._id || index}
+                      label={`${lang._id || 'Unknown'}: ${lang.count.toLocaleString()}`}
+                      sx={{ 
+                        fontWeight: 500,
+                        bgcolor: lang._id === 'bengali' ? '#1B263B' : '#415A77',
+                        color: '#E0E1DD'
+                      }}
+                      variant="outlined"
+                    />
+                  ))}
+                </Box>
+              </Card>
+            </Grid>
+
+            {/* Bias Distribution */}
+            <Grid item xs={12} md={6}>
+              <Card sx={{ p: 3, height: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <BarChart sx={{ fontSize: 32, color: '#1B263B', mr: 2 }} />
+                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                    Bias Distribution
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {stats.bias_distribution.map((bias, index) => (
+                    <Chip
+                      key={bias._id || index}
+                      label={`${bias._id}: ${bias.count.toLocaleString()}`}
+                      color={
+                        bias._id === 'Low Bias' ? 'success' : 
+                        bias._id === 'Moderate Bias' ? 'warning' : 'error'
+                      }
+                      variant="outlined"
+                      sx={{ fontWeight: 500 }}
+                    />
+                  ))}
+                </Box>
+              </Card>
+            </Grid>
+          </Grid>
+        </Paper>
+      )}
+
       {/* About Section */}
       <Paper sx={{ 
         p: { xs: 4, md: 6 }, 
@@ -116,8 +342,8 @@ const Home: React.FC = () => {
               <Box sx={{ 
                 p: 1.5, 
                 borderRadius: 2, 
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(65, 90, 119, 0.2)' : 'rgba(13, 27, 42, 0.1)',
-                color: 'primary.main',
+                bgcolor: '#E0E1DD',
+                color: '#0D1B2A',
                 minWidth: 'fit-content',
               }}>
                 <Assessment sx={{ fontSize: 24 }} />
@@ -139,8 +365,8 @@ const Home: React.FC = () => {
               <Box sx={{ 
                 p: 1.5, 
                 borderRadius: 2, 
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(119, 141, 169, 0.2)' : 'rgba(65, 90, 119, 0.1)',
-                color: 'secondary.main',
+                bgcolor: '#E0E1DD',
+                color: '#1B263B',
                 minWidth: 'fit-content',
               }}>
                 <Psychology sx={{ fontSize: 24 }} />
@@ -171,16 +397,16 @@ const Home: React.FC = () => {
                 display: 'inline-flex',
                 p: 3,
                 borderRadius: '50%',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(65, 90, 119, 0.2)' : 'rgba(13, 27, 42, 0.1)',
+                bgcolor: '#E0E1DD',
                 mb: 3,
               }}>
-                <CloudDownload sx={{ fontSize: 40, color: 'primary.main' }} />
+                <CloudDownload sx={{ fontSize: 40, color: '#0D1B2A' }} />
               </Box>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
                 Data Collection
               </Typography>
               <Typography color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                Automatically scrapes articles from multiple Bangladeshi news sources including Prothom Alo, Daily Star, BD Pratidin, Ekattor TV, and ATN News.
+                Automatically scrapes articles from multiple Bangladeshi news sources including Prothom Alo, Daily Star, BD Pratidin, Ekattor TV, ATN News, and Jamuna TV.
               </Typography>
             </Box>
           </Grid>
@@ -190,10 +416,10 @@ const Home: React.FC = () => {
                 display: 'inline-flex',
                 p: 3,
                 borderRadius: '50%',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)',
+                bgcolor: '#E0E1DD',
                 mb: 3,
               }}>
-                <Psychology sx={{ fontSize: 40, color: 'success.main' }} />
+                <Psychology sx={{ fontSize: 40, color: '#1B263B' }} />
               </Box>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 2 }}>
                 AI Analysis
@@ -209,7 +435,7 @@ const Home: React.FC = () => {
                 display: 'inline-flex',
                 p: 3,
                 borderRadius: '50%',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.2)' : 'rgba(33, 150, 243, 0.1)',
+                bgcolor: '#E0E1DD',
                 mb: 3,
               }}>
                 <Compare sx={{ fontSize: 40, color: 'info.main' }} />
@@ -235,16 +461,16 @@ const Home: React.FC = () => {
             <List sx={{ '& .MuiListItem-root': { py: 1.5 } }}>
               <ListItem>
                 <ListItemIcon>
-                  <CheckCircle color="success" sx={{ fontSize: 28 }} />
+                  <CheckCircle sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Multi-Source Analysis</Typography>}
-                  secondary={<Typography color="text.secondary">Analyze articles from 5+ major Bangladeshi news sources</Typography>}
+                  secondary={<Typography color="text.secondary">Analyze articles from 6 major Bangladeshi news sources</Typography>}
                 />
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <CheckCircle color="success" sx={{ fontSize: 28 }} />
+                  <CheckCircle sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Bias Detection</Typography>}
@@ -253,7 +479,7 @@ const Home: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <CheckCircle color="success" sx={{ fontSize: 28 }} />
+                  <CheckCircle sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Cross-Source Comparison</Typography>}
@@ -262,7 +488,7 @@ const Home: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <CheckCircle color="success" sx={{ fontSize: 28 }} />
+                  <CheckCircle sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Real-time Scraping</Typography>}
@@ -271,7 +497,7 @@ const Home: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListItemIcon>
-                  <CheckCircle color="success" sx={{ fontSize: 28 }} />
+                  <CheckCircle sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Multi-language Support</Typography>}
@@ -289,7 +515,7 @@ const Home: React.FC = () => {
             <List sx={{ '& .MuiListItem-root': { py: 1.5, alignItems: 'flex-start' } }}>
               <ListItem>
                 <ListItemIcon sx={{ mt: 0.5 }}>
-                  <Psychology color="primary" sx={{ fontSize: 28 }} />
+                  <Psychology sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Political Bias Score</Typography>}
@@ -298,7 +524,7 @@ const Home: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListItemIcon sx={{ mt: 0.5 }}>
-                  <Psychology color="primary" sx={{ fontSize: 28 }} />
+                  <Psychology sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Sentiment Analysis</Typography>}
@@ -307,7 +533,7 @@ const Home: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListItemIcon sx={{ mt: 0.5 }}>
-                  <Psychology color="primary" sx={{ fontSize: 28 }} />
+                  <Psychology sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Emotional Language</Typography>}
@@ -316,7 +542,7 @@ const Home: React.FC = () => {
               </ListItem>
               <ListItem>
                 <ListItemIcon sx={{ mt: 0.5 }}>
-                  <Psychology color="primary" sx={{ fontSize: 28 }} />
+                  <Psychology sx={{ fontSize: 28, color: '#1B263B' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={<Typography variant="h6" sx={{ fontWeight: 500 }}>Factual vs Opinion</Typography>}
@@ -432,22 +658,19 @@ const Home: React.FC = () => {
           <Grid item xs={12} sm={6} md={4}>
             <Card sx={{ 
               textAlign: 'center', 
-              p: 3, 
+              p: 3,
               height: '100%',
-              bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(65, 90, 119, 0.1)' : 'rgba(0, 0, 0, 0.02)',
-              border: '2px dashed',
-              borderColor: (theme) => theme.palette.mode === 'dark' ? 'rgba(119, 141, 169, 0.3)' : 'rgba(0, 0, 0, 0.12)',
               transition: 'all 0.3s ease',
               '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: (theme) => theme.palette.mode === 'dark' ? 'rgba(65, 90, 119, 0.2)' : 'rgba(13, 27, 42, 0.05)',
+                transform: 'translateY(-4px)',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="text.secondary" sx={{ fontWeight: 600, mb: 1 }}>
-                More Sources
+              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+                Jamuna TV
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Continuously expanding coverage
+                24/7 news television channel
               </Typography>
             </Card>
           </Grid>

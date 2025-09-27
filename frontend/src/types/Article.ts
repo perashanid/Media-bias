@@ -19,6 +19,7 @@ export interface Article {
   language: string;
   content_hash?: string;
   bias_scores?: BiasScore;
+  topics?: string[];
 }
 
 export interface ComparisonReport {

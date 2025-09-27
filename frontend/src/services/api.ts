@@ -33,6 +33,7 @@ api.interceptors.response.use(
 export const articlesApi = {
   getArticles: async (params?: {
     source?: string;
+    topic?: string;
     limit?: number;
     skip?: number;
     start_date?: string;
@@ -51,6 +52,11 @@ export const articlesApi = {
     const response = await api.get('/articles/search', {
       params: { q: query, limit },
     });
+    return response.data;
+  },
+
+  getAvailableTopics: async () => {
+    const response = await api.get('/topics');
     return response.data;
   },
 
@@ -154,6 +160,19 @@ export const statisticsApi = {
     const response = await api.get('/statistics/comparison-summary', {
       params: { days },
     });
+    return response.data;
+  },
+};
+
+// Stats API (new endpoint)
+export const statsApi = {
+  getOverview: async () => {
+    const response = await api.get('/stats/overview');
+    return response.data;
+  },
+
+  getRecent: async () => {
+    const response = await api.get('/stats/recent');
     return response.data;
   },
 };

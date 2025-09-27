@@ -245,8 +245,20 @@ class BaseScraper(ABC):
         if not date_str:
             return None
         
+        # Clean the date string
+        date_str = date_str.strip()
+        
+        # Handle ISO format with timezone
+        try:
+            from dateutil import parser
+            return parser.parse(date_str)
+        except:
+            pass
+        
         # Common date formats to try
         date_formats = [
+            '%Y-%m-%dT%H:%M:%S%z',  # ISO format with timezone
+            '%Y-%m-%dT%H:%M:%S',    # ISO format without timezone
             '%Y-%m-%d %H:%M:%S',
             '%Y-%m-%d',
             '%d/%m/%Y',
@@ -257,9 +269,9 @@ class BaseScraper(ABC):
         
         for fmt in date_formats:
             try:
-                return datetime.strptime(date_str.strip(), fmt)
+                return datetime.strptime(date_str, fmt)
             except ValueError:
                 continue
         
-        logger.warning(f"Could not parse date: {date_str}")
+        logger.debug(f"Could not parse date: {date_str}")
         return datetime.now()  # Fallback to current time

@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import ArticleList from './pages/ArticleList';
 import ArticleDetail from './pages/ArticleDetail';
 import ComparisonView from './pages/ComparisonView';
+import Comparison from './pages/Comparison';
 import BiasAnalyzer from './pages/BiasAnalyzer';
 import ManualScraper from './pages/ManualScraper';
 import Contact from './pages/Contact';
@@ -31,7 +32,8 @@ function App() {
               } />
               <Route path="/articles" element={<ArticleList />} />
               <Route path="/articles/:id" element={<ArticleDetail />} />
-              <Route path="/comparison" element={<ComparisonView />} />
+              <Route path="/comparison" element={<Comparison />} />
+              <Route path="/comparison-advanced" element={<ComparisonView />} />
               <Route path="/analyzer" element={<BiasAnalyzer />} />
               <Route path="/scraper" element={<ManualScraper />} />
               <Route path="/contact" element={<Contact />} />
