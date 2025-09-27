@@ -13,13 +13,16 @@ import {
   CircularProgress,
   Alert,
   InputAdornment,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { Search, Visibility, Analytics } from '@mui/icons-material';
+import { Search, Visibility, Analytics, VisibilityOff, Restore } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { articlesApi } from '../services/api';
 import { Article } from '../types/Article';
 import BiasScoreCard from '../components/BiasScoreCard';
+import { useAuth } from '../contexts/AuthContext';
 
 const ArticleList: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -30,12 +33,27 @@ const ArticleList: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [availableSources, setAvailableSources] = useState<string[]>([]);
+  const [hiddenArticles, setHiddenArticles] = useState<string[]>([]);
+  
+  const { isAuthenticated, hideArticle, unhideArticle, getHiddenArticles } = useAuth();
 
   const articlesPerPage = 12;
 
   useEffect(() => {
     fetchArticles();
-  }, [page, sourceFilter]);
+    if (isAuthenticated) {
+      loadHiddenArticles();
+    }
+  }, [page, sourceFilter, isAuthenticated]);
+
+  const loadHiddenArticles = async () => {
+    try {
+      const hidden = await getHiddenArticles();
+      setHiddenArticles(hidden);
+    } catch (error) {
+      console.error('Failed to load hidden articles:', error);
+    }
+  };
 
   const fetchArticles = async () => {
     try {
@@ -104,6 +122,32 @@ const ArticleList: React.FC = () => {
     if (score < 0.3) return 'Low Bias';
     if (score < 0.6) return 'Moderate Bias';
     return 'High Bias';
+  };
+
+  const handleHideArticle = async (articleId: string) => {
+    try {
+      const success = await hideArticle(articleId);
+      if (success) {
+        setHiddenArticles([...hiddenArticles, articleId]);
+      }
+    } catch (error) {
+      console.error('Failed to hide article:', error);
+    }
+  };
+
+  const handleUnhideArticle = async (articleId: string) => {
+    try {
+      const success = await unhideArticle(articleId);
+      if (success) {
+        setHiddenArticles(hiddenArticles.filter(id => id !== articleId));
+      }
+    } catch (error) {
+      console.error('Failed to unhide article:', error);
+    }
+  };
+
+  const isArticleHidden = (articleId: string) => {
+    return hiddenArticles.includes(articleId);
   };
 
   return (
@@ -235,8 +279,8 @@ const ArticleList: React.FC = () => {
                   </CardContent>
 
                   <Box sx={{ p: 2, pt: 0 }}>
-                    <Grid container spacing={1}>
-                      <Grid item xs={6}>
+                    <Grid container spacing={1} alignItems="center">
+                      <Grid item xs={isAuthenticated ? 4 : 6}>
                         <Button
                           fullWidth
                           variant="outlined"
@@ -248,7 +292,7 @@ const ArticleList: React.FC = () => {
                           View
                         </Button>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item xs={isAuthenticated ? 4 : 6}>
                         <Button
                           fullWidth
                           variant="outlined"
@@ -260,6 +304,23 @@ const ArticleList: React.FC = () => {
                           Compare
                         </Button>
                       </Grid>
+                      {isAuthenticated && (
+                        <Grid item xs={4}>
+                          <Tooltip title={isArticleHidden(article.id) ? "Unhide article" : "Hide article"}>
+                            <IconButton
+                              size="small"
+                              onClick={() => 
+                                isArticleHidden(article.id) 
+                                  ? handleUnhideArticle(article.id)
+                                  : handleHideArticle(article.id)
+                              }
+                              color={isArticleHidden(article.id) ? "warning" : "default"}
+                            >
+                              {isArticleHidden(article.id) ? <Restore /> : <VisibilityOff />}
+                            </IconButton>
+                          </Tooltip>
+                        </Grid>
+                      )}
                     </Grid>
                   </Box>
                 </Card>

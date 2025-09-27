@@ -17,14 +17,8 @@ nltk==3.8.1
 # Web framework
 flask==3.0.0
 flask-cors==4.0.0
+gunicorn==21.2.0
 
 # Scheduling and utilities
 apscheduler==3.10.4
 python-dotenv==1.0.0
-hashlib2==1.0.1
-
-# Development dependencies
-pytest==7.4.3
-pytest-asyncio==0.21.1
-black==23.11.0
-flake8==6.1.0

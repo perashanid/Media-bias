@@ -7,6 +7,7 @@ from scrapers.daily_star_scraper import DailyStarScraper
 from scrapers.bd_pratidin_scraper import BDPratidinScraper
 from scrapers.ekattor_tv_scraper import EkattorTVScraper
 from scrapers.atn_news_scraper import ATNNewsScraper
+from scrapers.enhanced_prothom_alo_scraper import EnhancedProthomAloScraper
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,11 @@ class ScraperManager:
             'bd_pratidin': BDPratidinScraper(),
             'ekattor_tv': EkattorTVScraper(),
             'atn_news': ATNNewsScraper()
+        }
+        
+        # Enhanced scrapers for comprehensive crawling
+        self.enhanced_scrapers = {
+            'prothom_alo_enhanced': EnhancedProthomAloScraper()
         }
         
     def scrape_all_sources(self, max_articles_per_source: int = 20, max_workers: int = 3) -> Dict[str, List[Article]]:
@@ -71,9 +77,29 @@ class ScraperManager:
         """Alias for scrape_single_source for backward compatibility"""
         return self.scrape_single_source(source_name, limit)
     
+    def comprehensive_scrape_source(self, source_name: str, max_articles: int = 100, max_depth: int = 3) -> List[Article]:
+        """Perform comprehensive crawling of a source using enhanced scraper"""
+        enhanced_source_name = f"{source_name}_enhanced"
+        
+        if enhanced_source_name not in self.enhanced_scrapers:
+            logger.warning(f"Enhanced scraper not available for {source_name}, falling back to regular scraper")
+            return self.scrape_single_source(source_name, max_articles)
+        
+        try:
+            scraper = self.enhanced_scrapers[enhanced_source_name]
+            articles = scraper.crawl_website(max_articles, max_depth)
+            logger.info(f"Comprehensive scraping completed: {len(articles)} articles from {source_name}")
+            return articles
+            
+        except Exception as e:
+            logger.error(f"Failed to perform comprehensive scraping from {source_name}: {e}")
+            return []
+    
     def get_available_sources(self) -> List[str]:
         """Get list of available news sources"""
-        return list(self.scrapers.keys())
+        regular_sources = list(self.scrapers.keys())
+        enhanced_sources = [name.replace('_enhanced', '') + ' (Enhanced)' for name in self.enhanced_scrapers.keys()]
+        return regular_sources + enhanced_sources
     
     def get_scraper_info(self) -> Dict[str, Dict[str, Any]]:
         """Get information about all available scrapers"""

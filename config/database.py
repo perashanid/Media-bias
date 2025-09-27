@@ -129,6 +129,23 @@ class DatabaseConnection:
             except Exception as e:
                 logger.debug(f"Created at index creation skipped: {e}")
             
+            # Create indexes for users collection
+            users_collection = self.database.users
+            try:
+                users_collection.create_index([("username", ASCENDING)], unique=True)
+                users_collection.create_index([("email", ASCENDING)], unique=True)
+            except Exception as e:
+                logger.debug(f"Users index creation skipped: {e}")
+            
+            # Create indexes for user_sessions collection
+            sessions_collection = self.database.user_sessions
+            try:
+                sessions_collection.create_index([("session_token", ASCENDING)], unique=True)
+                sessions_collection.create_index([("user_id", ASCENDING)])
+                sessions_collection.create_index([("expires_at", ASCENDING)])
+            except Exception as e:
+                logger.debug(f"Sessions index creation skipped: {e}")
+            
             logger.info("Database indexes created successfully")
             
         except Exception as e:
@@ -171,6 +188,20 @@ def get_article_groups_collection():
     if db_connection.database is None:
         db_connection.connect()
     return db_connection.database['article_groups']
+
+
+def get_users_collection():
+    """Get the users collection"""
+    if db_connection.database is None:
+        db_connection.connect()
+    return db_connection.database['users']
+
+
+def get_user_sessions_collection():
+    """Get the user_sessions collection"""
+    if db_connection.database is None:
+        db_connection.connect()
+    return db_connection.database['user_sessions']
 
 
 def initialize_database():

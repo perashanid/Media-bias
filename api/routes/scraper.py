@@ -112,7 +112,17 @@ def manual_scrape():
             # Scrape from specific source
             try:
                 logger.info(f"Starting scraping from source: {source}")
-                scraped_articles = scraper_manager.scrape_source(source, limit=10)
+                
+                # Check if comprehensive scraping is requested
+                comprehensive = data.get('comprehensive', False)
+                max_articles = data.get('max_articles', 50 if comprehensive else 10)
+                max_depth = data.get('max_depth', 3)
+                
+                if comprehensive:
+                    logger.info(f"Starting comprehensive scraping from {source} (max_articles={max_articles}, max_depth={max_depth})")
+                    scraped_articles = scraper_manager.comprehensive_scrape_source(source, max_articles, max_depth)
+                else:
+                    scraped_articles = scraper_manager.scrape_source(source, max_articles)
                 
                 logger.info(f"Scraped {len(scraped_articles)} articles from {source}")
                 
@@ -231,6 +241,81 @@ def test_scrape_url():
     except Exception as e:
         logger.error(f"URL test failed: {e}")
         return jsonify({'error': 'URL test failed'}), 500
+
+
+@scraper_bp.route('/comprehensive', methods=['POST'])
+def comprehensive_scrape():
+    """Perform comprehensive scraping by crawling entire website"""
+    try:
+        data = request.get_json() or {}
+        source = data.get('source')
+        max_articles = data.get('max_articles', 100)
+        max_depth = data.get('max_depth', 3)
+        
+        if not source:
+            return jsonify({'error': 'Source parameter is required'}), 400
+        
+        logger.info(f"Starting comprehensive scraping from {source} (max_articles={max_articles}, max_depth={max_depth})")
+        
+        # Perform comprehensive scraping
+        scraped_articles = scraper_manager.comprehensive_scrape_source(source, max_articles, max_depth)
+        
+        if not scraped_articles:
+            return jsonify({
+                'success': False,
+                'error': f'No articles found during comprehensive scraping of {source}'
+            }), 400
+        
+        # Store articles and analyze bias
+        stored_count = 0
+        analyzed_count = 0
+        errors = []
+        
+        for i, article in enumerate(scraped_articles):
+            try:
+                logger.info(f"Storing article {i+1}/{len(scraped_articles)}: {article.title[:50]}...")
+                article_id = storage_service.store_article(article)
+                if article_id:
+                    stored_count += 1
+                    logger.info(f"Article stored with ID: {article_id}")
+                    
+                    try:
+                        bias_scores = bias_analyzer.analyze_article_bias(article)
+                        storage_service.update_article_bias_scores(article_id, bias_scores.to_dict())
+                        analyzed_count += 1
+                        logger.info(f"Bias analysis completed for article {article_id}")
+                    except Exception as e:
+                        error_msg = f"Failed to analyze bias for article {article_id}: {e}"
+                        logger.warning(error_msg)
+                        errors.append(error_msg)
+                else:
+                    error_msg = f"Failed to store article: {article.title[:50]}"
+                    logger.warning(error_msg)
+                    errors.append(error_msg)
+            except Exception as e:
+                error_msg = f"Failed to process article {i+1}: {e}"
+                logger.warning(error_msg)
+                errors.append(error_msg)
+                continue
+        
+        response_data = {
+            'success': True,
+            'message': f'Comprehensive scraping completed: {len(scraped_articles)} articles found, {stored_count} stored, {analyzed_count} analyzed',
+            'articles_scraped': len(scraped_articles),
+            'articles_stored': stored_count,
+            'articles_analyzed': analyzed_count,
+            'source': source,
+            'max_depth': max_depth
+        }
+        
+        if errors:
+            response_data['warnings'] = errors[:10]  # Include first 10 errors
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Comprehensive scraping failed: {e}")
+        return jsonify({'error': f'Comprehensive scraping failed: {str(e)}'}), 500
 
 
 @scraper_bp.route('/batch', methods=['POST'])

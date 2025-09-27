@@ -69,6 +69,8 @@ yarn-error.log*
 # React build
 /build
 /dist
+frontend/build/
+frontend/dist/
 
 # Environment files (keep examples)
 .env.local
@@ -85,6 +87,9 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
+test_*.py
+*_test.py
+tests/
 
 # Docker
 .dockerignore
@@ -108,3 +113,30 @@ coverage.xml
 # Backup files
 *.bak
 *.backup
+
+# Render deployment
+.render/
+
+# Development files
+debug_*.py
+demo_*.py
+install_*.py
+setup_*.py
+init_*.py
+optimize_*.py
+fix_*.py
+create_*.py
+run_*.py
+start_*.py
+*.dev.yml
+*.dev.ps1
+*.bat
+
+# Documentation that's not needed in production
+AUTHENTICATION_GUIDE.md
+DEPLOYMENT_CHECKLIST.md
+FINAL_INTEGRATION_SUMMARY.md
+FIXES_IMPLEMENTED.md
+FIXES_SUMMARY.md
+QUICK_START.md
+SYSTEM_STATUS.md

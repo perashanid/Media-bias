@@ -1,10 +1,15 @@
-import React from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import React, { useState } from 'react';
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-import { Assessment, Article, Compare, Analytics, CloudDownload } from '@mui/icons-material';
+import { Assessment, Article, Compare, Analytics, CloudDownload, Login } from '@mui/icons-material';
+import { useAuth } from '../contexts/AuthContext';
+import LoginDialog from './LoginDialog';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const navItems = [
     { path: '/', label: 'Home', icon: <Assessment /> },
@@ -14,6 +19,19 @@ const Navbar: React.FC = () => {
     { path: '/analyzer', label: 'Analyzer', icon: <Analytics /> },
     { path: '/scraper', label: 'Scraper', icon: <CloudDownload /> },
   ];
+
+  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleUserMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleUserMenuClose();
+  };
 
   return (
     <AppBar position="static">
@@ -34,7 +52,7 @@ const Navbar: React.FC = () => {
         >
           Media Bias Detector
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           {navItems.map((item) => (
             <Button
               key={item.path}
@@ -49,7 +67,60 @@ const Navbar: React.FC = () => {
               {item.label}
             </Button>
           ))}
+          
+          {isAuthenticated ? (
+            <>
+              <IconButton
+                size="large"
+                edge="end"
+                aria-label="account of current user"
+                aria-controls="user-menu"
+                aria-haspopup="true"
+                onClick={handleUserMenuOpen}
+                color="inherit"
+              >
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+                  {user?.username.charAt(0).toUpperCase()}
+                </Avatar>
+              </IconButton>
+              <Menu
+                id="user-menu"
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                open={Boolean(anchorEl)}
+                onClose={handleUserMenuClose}
+              >
+                <MenuItem disabled>
+                  <Typography variant="body2" color="text.secondary">
+                    {user?.username}
+                  </Typography>
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+              </Menu>
+            </>
+          ) : (
+            <Button
+              color="inherit"
+              startIcon={<Login />}
+              onClick={() => setLoginDialogOpen(true)}
+            >
+              Login
+            </Button>
+          )}
         </Box>
+        
+        <LoginDialog
+          open={loginDialogOpen}
+          onClose={() => setLoginDialogOpen(false)}
+        />
       </Toolbar>
     </AppBar>
   );

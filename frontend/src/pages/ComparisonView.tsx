@@ -156,7 +156,9 @@ const ComparisonView: React.FC = () => {
   };
 
   const getBiasComparisonData = () => {
-    if (!comparisonReport) return [];
+    if (!comparisonReport || !comparisonReport.articles || !Array.isArray(comparisonReport.articles)) {
+      return [];
+    }
 
     return comparisonReport.articles.map(article => ({
       source: article.source,
@@ -438,10 +440,10 @@ const ComparisonView: React.FC = () => {
                 Articles Compared
               </Typography>
               <Typography variant="h3" color="primary">
-                {comparisonReport.articles.length}
+                {comparisonReport.articles?.length || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                From {new Set(comparisonReport.articles.map(a => a.source)).size} sources
+                From {comparisonReport.articles ? new Set(comparisonReport.articles.map(a => a.source)).size : 0} sources
               </Typography>
             </CardContent>
           </Card>
@@ -470,7 +472,7 @@ const ComparisonView: React.FC = () => {
                 Key Differences
               </Typography>
               <Typography variant="h3" color="secondary">
-                {comparisonReport.key_differences.length}
+                {comparisonReport.key_differences?.length || 0}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Identified differences
@@ -518,7 +520,7 @@ const ComparisonView: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Object.entries(comparisonReport.bias_differences).map(([comparison, difference]) => (
+                {Object.entries(comparisonReport.bias_differences || {}).map(([comparison, difference]) => (
                   <TableRow key={comparison}>
                     <TableCell>{comparison}</TableCell>
                     <TableCell align="right">
@@ -563,8 +565,8 @@ const ComparisonView: React.FC = () => {
           <Typography variant="h6" gutterBottom>
             Key Coverage Differences
           </Typography>
-          {comparisonReport.key_differences.length > 0 ? (
-            comparisonReport.key_differences.map((difference, index) => (
+          {(comparisonReport.key_differences?.length || 0) > 0 ? (
+            (comparisonReport.key_differences || []).map((difference, index) => (
               <Alert key={index} severity="info" sx={{ mb: 1 }}>
                 {difference}
               </Alert>
@@ -583,7 +585,7 @@ const ComparisonView: React.FC = () => {
       </Typography>
       
       <Grid container spacing={3}>
-        {comparisonReport.articles.map((article) => (
+        {(comparisonReport.articles || []).map((article) => (
           <Grid item xs={12} md={6} key={article.id}>
             <Card>
               <CardContent>

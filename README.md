@@ -1,14 +1,17 @@
-# Media Bias Detector
+# Modern Media Bias Detector
 
-A full-stack application for scraping, analyzing, and detecting bias in news articles from various sources.
+A production-ready, modern web application for detecting and analyzing media bias in news articles using advanced NLP techniques and machine learning models.
 
 ## Features
 
-- 🔍 **Web Scraping**: Scrape articles from multiple news sources
-- 🧠 **Bias Analysis**: AI-powered bias detection and sentiment analysis
-- 📊 **Dashboard**: Real-time statistics and visualizations
-- 🗄️ **Database Storage**: Persistent storage with MongoDB
-- 🌐 **Web Interface**: React-based frontend for easy interaction
+- **Modern UI/UX**: Clean, responsive design with Material-UI components
+- **Web Scraping**: Intelligent scraping from multiple news sources
+- **Advanced Bias Analysis**: ML-powered bias detection with detailed insights
+- **Real-time Dashboard**: Interactive analytics with beautiful visualizations
+- **Database Storage**: Persistent storage with MongoDB
+- **Secure Authentication**: JWT-based user system with modern password controls
+- **Personal Article Management**: Users can hide/unhide articles individually
+- **Production Ready**: Optimized for deployment on Render and other platforms
 
 ## Quick Start
 
@@ -50,6 +53,14 @@ This will start both the backend API server and frontend development server.
 - Install MongoDB Community Server
 - Run `npm run setup-db` and choose option 2
 
+### 3. Create Admin User (Optional)
+
+```bash
+python create_admin_user.py
+```
+
+This creates an admin user account for testing the authentication system.
+
 ## Available Scripts
 
 - `npm run dev` - Start both frontend and backend
@@ -59,7 +70,20 @@ This will start both the backend API server and frontend development server.
 - `npm run build-frontend` - Build frontend for production
 - `npm test` - Run all tests
 
+### Authentication Scripts
+
+- `python create_admin_user.py` - Create an admin user account
+- `python test_auth_system.py` - Test the authentication system
+- `start_app.bat` (Windows) - Start both servers with one click
+
 ## Usage
+
+### Authentication
+
+1. **Register**: Click "Login" in the navbar and switch to "Register" tab
+2. **Login**: Use your credentials to access personalized features
+3. **Personal Dashboard**: Access "My Dashboard" for user-specific content
+4. **Article Management**: Hide/unhide articles from your personal view
 
 ### Manual Scraping
 
@@ -71,14 +95,15 @@ This will start both the backend API server and frontend development server.
 ### View Articles
 
 1. Go to the **Articles** page
-2. Browse all scraped articles
+2. Browse all scraped articles (filtered by your hidden articles if logged in)
 3. View bias analysis results
 4. Filter by source, date, or search terms
+5. **Hide Articles**: Click the eye-off icon to hide articles (requires login)
 
 ### Dashboard
 
-1. Go to the **Dashboard** page
-2. View statistics and trends
+1. **Global Dashboard**: View overall statistics and trends
+2. **Personal Dashboard**: View your reading statistics and hidden articles (requires login)
 3. See bias distribution across sources
 4. Monitor scraping activity
 

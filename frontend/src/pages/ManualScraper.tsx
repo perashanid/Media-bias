@@ -17,7 +17,14 @@ import {
   Select,
   MenuItem,
   Grid,
+  Switch,
+  FormControlLabel,
+  Slider,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
+import { ExpandMore, Settings } from '@mui/icons-material';
 import { scrapingApi } from '../services/api';
 import { useDashboard } from '../contexts/DashboardContext';
 
@@ -59,6 +66,9 @@ const ManualScraper: React.FC = () => {
   const [availableSources, setAvailableSources] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [testLoading, setTestLoading] = useState(false);
+  const [comprehensiveMode, setComprehensiveMode] = useState(false);
+  const [maxArticles, setMaxArticles] = useState(50);
+  const [maxDepth, setMaxDepth] = useState(3);
   const [result, setResult] = useState<ScrapingResult | null>(null);
   const [testResult, setTestResult] = useState<ScrapingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +120,15 @@ const ManualScraper: React.FC = () => {
     setResult(null);
 
     try {
-      const data = await scrapingApi.manualScrape({ source: selectedSource });
+      const requestData: any = { source: selectedSource };
+      
+      if (comprehensiveMode) {
+        requestData.comprehensive = true;
+        requestData.max_articles = maxArticles;
+        requestData.max_depth = maxDepth;
+      }
+      
+      const data = await scrapingApi.manualScrape(requestData);
       setResult(data);
       if (data.success) {
         triggerRefresh(); // Refresh dashboard after successful scraping
@@ -241,6 +259,76 @@ const ManualScraper: React.FC = () => {
                 </Select>
               </FormControl>
             </Box>
+            
+            {/* Comprehensive Scraping Options */}
+            <Accordion sx={{ mb: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Settings sx={{ mr: 1 }} />
+                <Typography>Advanced Scraping Options</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={comprehensiveMode}
+                      onChange={(e) => setComprehensiveMode(e.target.checked)}
+                    />
+                  }
+                  label="Comprehensive Scraping (crawl entire website)"
+                  sx={{ mb: 2 }}
+                />
+                
+                {comprehensiveMode && (
+                  <Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Comprehensive scraping will crawl the entire website by following all links to find and scrape articles.
+                      This may take significantly longer but will find more articles.
+                    </Typography>
+                    
+                    <Typography gutterBottom>
+                      Maximum Articles: {maxArticles}
+                    </Typography>
+                    <Slider
+                      value={maxArticles}
+                      onChange={(_, value) => setMaxArticles(value as number)}
+                      min={10}
+                      max={200}
+                      step={10}
+                      marks={[
+                        { value: 10, label: '10' },
+                        { value: 50, label: '50' },
+                        { value: 100, label: '100' },
+                        { value: 200, label: '200' }
+                      ]}
+                      sx={{ mb: 3 }}
+                    />
+                    
+                    <Typography gutterBottom>
+                      Crawling Depth: {maxDepth}
+                    </Typography>
+                    <Slider
+                      value={maxDepth}
+                      onChange={(_, value) => setMaxDepth(value as number)}
+                      min={1}
+                      max={5}
+                      step={1}
+                      marks={[
+                        { value: 1, label: '1' },
+                        { value: 2, label: '2' },
+                        { value: 3, label: '3' },
+                        { value: 4, label: '4' },
+                        { value: 5, label: '5' }
+                      ]}
+                      sx={{ mb: 2 }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      Higher depth means following more links but takes longer
+                    </Typography>
+                  </Box>
+                )}
+              </AccordionDetails>
+            </Accordion>
+
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Button
                 variant="contained"
@@ -249,7 +337,8 @@ const ManualScraper: React.FC = () => {
                 startIcon={loading ? <CircularProgress size={20} /> : null}
                 sx={{ flex: 1 }}
               >
-                {loading ? 'Scraping...' : 'Scrape Source'}
+                {loading ? (comprehensiveMode ? 'Crawling...' : 'Scraping...') : 
+                 (comprehensiveMode ? 'Comprehensive Scrape' : 'Scrape Source')}
               </Button>
               <Button
                 variant="outlined"

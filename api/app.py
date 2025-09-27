@@ -1,8 +1,12 @@
-from flask import Flask, request, jsonify
+import sys
+import os
+from pathlib import Path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from flask import Flask, request, jsonify, send_from_directory, send_file
 from flask_cors import CORS
 from datetime import datetime, timedelta
 import logging
-import os
 from typing import Dict, Any, List, Optional
 
 # Import services
@@ -18,14 +22,20 @@ from api.routes.bias import bias_bp
 from api.routes.comparison import comparison_bp
 from api.routes.statistics import statistics_bp
 from api.routes.scraper import scraper_bp
+from api.routes.auth import auth_bp
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
-app = Flask(__name__)
-CORS(app)  # Enable CORS for frontend access
+app = Flask(__name__, static_folder='../frontend/build', static_url_path='')
+
+# Configure CORS for production
+if os.getenv('FLASK_ENV') == 'production':
+    CORS(app, origins=['https://your-app-name.onrender.com'])
+else:
+    CORS(app)  # Allow all origins in development
 
 # Register blueprints
 app.register_blueprint(articles_bp)
@@ -33,12 +43,40 @@ app.register_blueprint(bias_bp)
 app.register_blueprint(comparison_bp)
 app.register_blueprint(statistics_bp)
 app.register_blueprint(scraper_bp)
+app.register_blueprint(auth_bp)
 
 # Initialize services
 storage_service = ArticleStorageService()
 bias_analyzer = BiasAnalyzer()
 article_comparator = ArticleComparator()
 scraper_manager = ScraperManager()
+
+# Import user service for authentication
+from services.user_service import UserService
+user_service = UserService()
+
+
+def get_current_user_id():
+    """Get current user ID from request headers"""
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        user_session = user_service.get_session(token)
+        if user_session:
+            return user_session.user_id
+    return None
+
+
+def filter_articles_for_user(articles, user_id=None):
+    """Filter out articles hidden by the user"""
+    if not user_id:
+        return articles
+    
+    hidden_articles = user_service.get_user_hidden_articles(user_id)
+    if not hidden_articles:
+        return articles
+    
+    return [article for article in articles if str(article.id) not in hidden_articles]
 
 
 def initialize_app():
@@ -80,6 +118,23 @@ def health_check():
     })
 
 
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    """Serve React app for all non-API routes"""
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
+
+
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    """Serve static files"""
+    return send_from_directory(os.path.join(app.static_folder, 'static'), filename)
+
+
 # Article endpoints
 @app.route('/api/articles', methods=['GET'])
 def get_articles():
@@ -115,9 +170,13 @@ def get_articles():
             start_dt = end_dt - timedelta(days=7)
             articles = storage_service.get_articles_by_date_range(start_dt, end_dt, limit)
         
+        # Filter articles for current user (if authenticated)
+        current_user_id = get_current_user_id()
+        filtered_articles = filter_articles_for_user(articles, current_user_id)
+        
         # Convert articles to JSON
         articles_json = []
-        for article in articles:
+        for article in filtered_articles:
             article_dict = article.to_dict()
             # Convert ObjectId to string for JSON serialization
             if '_id' in article_dict:
@@ -168,8 +227,12 @@ def search_articles():
         
         articles = storage_service.search_articles(query, limit)
         
+        # Filter articles for current user (if authenticated)
+        current_user_id = get_current_user_id()
+        filtered_articles = filter_articles_for_user(articles, current_user_id)
+        
         articles_json = []
-        for article in articles:
+        for article in filtered_articles:
             article_dict = article.to_dict()
             if '_id' in article_dict:
                 article_dict['id'] = str(article_dict.pop('_id'))
