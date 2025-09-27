@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box,
@@ -70,13 +70,7 @@ const ComparisonView: React.FC = () => {
   const [newInputSource, setNewInputSource] = useState('');
   const [tabValue, setTabValue] = useState(0);
 
-  useEffect(() => {
-    if (articleId && !customMode) {
-      fetchComparison(articleId);
-    }
-  }, [articleId, customMode]);
-
-  const fetchComparison = async (id: string) => {
+  const fetchComparison = useCallback(async (id: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -99,7 +93,13 @@ const ComparisonView: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (articleId && !customMode) {
+      fetchComparison(articleId);
+    }
+  }, [articleId, customMode, fetchComparison]);
 
   const performCustomComparison = async () => {
     if (comparisonInputs.length < 2) {

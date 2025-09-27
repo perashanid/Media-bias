@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Paper,
@@ -72,18 +72,18 @@ const ManualScraper: React.FC = () => {
   const [testResult, setTestResult] = useState<ScrapingResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadAvailableSources();
-  }, []);
-
-  const loadAvailableSources = async () => {
+  const loadAvailableSources = useCallback(async () => {
     try {
       const data = await scrapingApi.getAvailableSources();
       setAvailableSources(data.sources || []);
     } catch (err) {
       console.error('Failed to load sources:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadAvailableSources();
+  }, [loadAvailableSources]);
 
   const handleUrlScrape = async () => {
     if (!url.trim()) {

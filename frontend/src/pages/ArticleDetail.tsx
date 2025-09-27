@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Box,
@@ -27,14 +27,7 @@ const ArticleDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchArticle(id);
-      fetchSimilarArticles(id);
-    }
-  }, [id]);
-
-  const fetchArticle = async (articleId: string) => {
+  const fetchArticle = useCallback(async (articleId: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -48,9 +41,9 @@ const ArticleDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchSimilarArticles = async (articleId: string) => {
+  const fetchSimilarArticles = useCallback(async (articleId: string) => {
     try {
       setLoadingSimilar(true);
 
@@ -62,7 +55,14 @@ const ArticleDetail: React.FC = () => {
     } finally {
       setLoadingSimilar(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      fetchArticle(id);
+      fetchSimilarArticles(id);
+    }
+  }, [id, fetchArticle, fetchSimilarArticles]);
 
   const handleAnalyzeBias = async () => {
     if (!article) return;
