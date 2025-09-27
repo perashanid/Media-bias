@@ -237,17 +237,24 @@ const Dashboard: React.FC = () => {
   return (
     <Container maxWidth="lg">
       {/* Dashboard Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: { xs: 'flex-start', md: 'center' },
+        flexDirection: { xs: 'column', md: 'row' },
+        gap: { xs: 3, md: 0 },
+        mb: 4 
+      }}>
         <Box>
-          <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+          <Typography variant="h2" component="h1" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
             Dashboard
           </Typography>
-          <Typography variant="h6" color="text.secondary">
+          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
             {isAuthenticated ? `Welcome back, ${user?.username}!` : 'Real-time analytics and statistics'}
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <Typography variant="caption" color="text.secondary">
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
             Last updated: {lastRefresh.toLocaleTimeString()}
           </Typography>
           {isAuthenticated && (
@@ -255,15 +262,17 @@ const Dashboard: React.FC = () => {
               variant="outlined"
               startIcon={<Settings />}
               onClick={() => setSettingsOpen(true)}
+              sx={{ borderRadius: 2 }}
             >
               Settings
             </Button>
           )}
           <Button
-            variant="outlined"
+            variant="contained"
             startIcon={<Refresh />}
             onClick={handleRefresh}
             disabled={loading}
+            sx={{ borderRadius: 2 }}
           >
             Refresh
           </Button>
@@ -445,15 +454,31 @@ const Dashboard: React.FC = () => {
       {/* Global Dashboard Tab */}
       <TabPanel value={tabValue} index={isAuthenticated ? 1 : 0}>
         {/* Overview Cards */}
-        <Grid container spacing={3} sx={{ mb: 6 }}>
+        <Grid container spacing={4} sx={{ mb: 8 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', textAlign: 'center' }}>
-            <CardContent>
-              <Assessment sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-              <Typography color="textSecondary" gutterBottom>
+          <Card sx={{ 
+            height: '100%', 
+            textAlign: 'center',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+            }
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ 
+                display: 'inline-flex',
+                p: 2,
+                borderRadius: '50%',
+                bgcolor: 'primary.50',
+                mb: 2,
+              }}>
+                <Assessment sx={{ fontSize: 32, color: 'primary.main' }} />
+              </Box>
+              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Total Articles
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 {overviewStats?.total_articles?.toLocaleString() || 0}
               </Typography>
             </CardContent>
@@ -461,16 +486,32 @@ const Dashboard: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', textAlign: 'center' }}>
-            <CardContent>
-              <Psychology sx={{ fontSize: 40, color: 'success.main', mb: 1 }} />
-              <Typography color="textSecondary" gutterBottom>
+          <Card sx={{ 
+            height: '100%', 
+            textAlign: 'center',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+            }
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ 
+                display: 'inline-flex',
+                p: 2,
+                borderRadius: '50%',
+                bgcolor: 'success.50',
+                mb: 2,
+              }}>
+                <Psychology sx={{ fontSize: 32, color: 'success.main' }} />
+              </Box>
+              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Analyzed Articles
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 {overviewStats?.analyzed_articles?.toLocaleString() || 0}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 {overviewStats?.analysis_coverage?.percentage?.toFixed(1) || 0}% coverage
               </Typography>
             </CardContent>
@@ -478,16 +519,32 @@ const Dashboard: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', textAlign: 'center' }}>
-            <CardContent>
-              <TrendingUp sx={{ fontSize: 40, color: 'info.main', mb: 1 }} />
-              <Typography color="textSecondary" gutterBottom>
+          <Card sx={{ 
+            height: '100%', 
+            textAlign: 'center',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+            }
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ 
+                display: 'inline-flex',
+                p: 2,
+                borderRadius: '50%',
+                bgcolor: 'info.50',
+                mb: 2,
+              }}>
+                <TrendingUp sx={{ fontSize: 32, color: 'info.main' }} />
+              </Box>
+              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Recent Articles
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 {overviewStats?.recent_articles?.toLocaleString() || 0}
               </Typography>
-              <Typography variant="body2" color="textSecondary">
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 Last 7 days
               </Typography>
             </CardContent>
@@ -495,13 +552,29 @@ const Dashboard: React.FC = () => {
         </Grid>
 
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', textAlign: 'center' }}>
-            <CardContent>
-              <Speed sx={{ fontSize: 40, color: 'warning.main', mb: 1 }} />
-              <Typography color="textSecondary" gutterBottom>
+          <Card sx={{ 
+            height: '100%', 
+            textAlign: 'center',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+            }
+          }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ 
+                display: 'inline-flex',
+                p: 2,
+                borderRadius: '50%',
+                bgcolor: 'warning.50',
+                mb: 2,
+              }}>
+                <Speed sx={{ fontSize: 32, color: 'warning.main' }} />
+              </Box>
+              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ fontWeight: 500 }}>
                 Pending Analysis
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h3" sx={{ fontWeight: 700, color: 'text.primary' }}>
                 {overviewStats?.unanalyzed_articles?.toLocaleString() || 0}
               </Typography>
             </CardContent>
@@ -510,11 +583,21 @@ const Dashboard: React.FC = () => {
       </Grid>
 
       {/* Quick Actions */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
+      <Paper sx={{ p: 4, mb: 6, borderRadius: 3 }}>
+        <Typography variant="h4" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
           Quick Actions
         </Typography>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          gap: 3, 
+          flexWrap: 'wrap',
+          '& .MuiButton-root': {
+            px: 3,
+            py: 1.5,
+            borderRadius: 2,
+            fontSize: '1rem',
+          }
+        }}>
           <Button variant="contained" component={Link} to="/articles" startIcon={<Article />}>
             Browse Articles
           </Button>
@@ -531,7 +614,7 @@ const Dashboard: React.FC = () => {
       </Paper>
 
       {/* Charts Section */}
-      <Typography variant="h4" gutterBottom sx={{ textAlign: 'center', mb: 4 }}>
+      <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', mb: 6, fontWeight: 600 }}>
         Current Statistics
       </Typography>
       

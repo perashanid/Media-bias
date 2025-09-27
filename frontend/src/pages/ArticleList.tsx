@@ -106,7 +106,7 @@ const ArticleList: React.FC = () => {
     }
   };
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
@@ -152,26 +152,31 @@ const ArticleList: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h2" gutterBottom sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
         News Articles
       </Typography>
 
       {/* Filters and Search */}
-      <Box sx={{ mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
+      <Box sx={{ mb: 4 }}>
+        <Grid container spacing={3} alignItems="center">
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               placeholder="Search articles..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
                     <Search />
                   </InputAdornment>
                 ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                }
               }}
             />
           </Grid>
@@ -182,6 +187,11 @@ const ArticleList: React.FC = () => {
               label="Source"
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                }
+              }}
             >
               <MenuItem value="">All Sources</MenuItem>
               {availableSources.map((source) => (
@@ -197,6 +207,11 @@ const ArticleList: React.FC = () => {
               variant="contained"
               onClick={handleSearch}
               startIcon={<Search />}
+              sx={{ 
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '1rem',
+              }}
             >
               Search
             </Button>
@@ -217,23 +232,32 @@ const ArticleList: React.FC = () => {
       {/* Articles Grid */}
       {!loading && !error && (
         <>
-          <Grid container spacing={3}>
+          <Grid container spacing={4}>
             {articles.map((article) => (
               <Grid item xs={12} md={6} lg={4} key={article.id}>
-                <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <CardContent sx={{ flexGrow: 1 }}>
-                    <Box sx={{ mb: 2 }}>
+                <Card sx={{ 
+                  height: '100%', 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
+                  }
+                }}>
+                  <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                    <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       <Chip
                         label={article.source}
                         size="small"
                         color="primary"
-                        sx={{ mb: 1 }}
+                        sx={{ fontWeight: 500 }}
                       />
                       <Chip
                         label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
                         size="small"
                         color={getBiasLevelColor(article.bias_scores?.overall_bias_score)}
-                        sx={{ mb: 1, ml: 1 }}
+                        sx={{ fontWeight: 500 }}
                       />
                     </Box>
 
@@ -242,6 +266,9 @@ const ArticleList: React.FC = () => {
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
+                      fontWeight: 600,
+                      lineHeight: 1.4,
+                      mb: 2,
                     }}>
                       {article.title}
                     </Typography>
@@ -251,22 +278,23 @@ const ArticleList: React.FC = () => {
                       WebkitLineClamp: 3,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                      mb: 2,
+                      mb: 3,
+                      lineHeight: 1.6,
                     }}>
                       {article.content}
                     </Typography>
 
-                    <Box sx={{ mb: 2 }}>
-                      <Typography variant="caption" color="text.secondary">
-                        Published: {format(new Date(article.publication_date), 'MMM dd, yyyy')}
+                    <Box sx={{ mb: 3 }}>
+                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                        {format(new Date(article.publication_date), 'MMM dd, yyyy')}
                       </Typography>
                       {article.author && (
-                        <Typography variant="caption" color="text.secondary" display="block">
-                          By: {article.author}
+                        <Typography variant="body2" color="text.secondary">
+                          By {article.author}
                         </Typography>
                       )}
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Language: {article.language}
+                      <Typography variant="body2" color="text.secondary">
+                        {article.language}
                       </Typography>
                     </Box>
 
@@ -278,16 +306,17 @@ const ArticleList: React.FC = () => {
                     )}
                   </CardContent>
 
-                  <Box sx={{ p: 2, pt: 0 }}>
-                    <Grid container spacing={1} alignItems="center">
+                  <Box sx={{ p: 3, pt: 0 }}>
+                    <Grid container spacing={1.5} alignItems="center">
                       <Grid item xs={isAuthenticated ? 4 : 6}>
                         <Button
                           fullWidth
-                          variant="outlined"
+                          variant="contained"
                           size="small"
                           component={Link}
                           to={`/articles/${article.id}`}
                           startIcon={<Visibility />}
+                          sx={{ borderRadius: 2 }}
                         >
                           View
                         </Button>
@@ -300,6 +329,7 @@ const ArticleList: React.FC = () => {
                           component={Link}
                           to={`/comparison?article=${article.id}`}
                           startIcon={<Analytics />}
+                          sx={{ borderRadius: 2 }}
                         >
                           Compare
                         </Button>
@@ -315,6 +345,11 @@ const ArticleList: React.FC = () => {
                                   : handleHideArticle(article.id)
                               }
                               color={isArticleHidden(article.id) ? "warning" : "default"}
+                              sx={{ 
+                                borderRadius: 2,
+                                border: '1px solid',
+                                borderColor: isArticleHidden(article.id) ? 'warning.main' : 'grey.300',
+                              }}
                             >
                               {isArticleHidden(article.id) ? <Restore /> : <VisibilityOff />}
                             </IconButton>

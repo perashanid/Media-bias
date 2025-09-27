@@ -1,0 +1,442 @@
+/* Modern CSS enhancements with custom color scheme */
+
+/* CSS Variables for color scheme */
+:root {
+  --color-primary: #0D1B2A;
+  --color-secondary: #1B263B;
+  --color-accent: #415A77;
+  --color-light: #778DA9;
+  --color-lightest: #E0E1DD;
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+
+[data-theme="dark"] {
+  --scrollbar-track: var(--color-secondary);
+  --scrollbar-thumb: var(--color-accent);
+  --scrollbar-thumb-hover: var(--color-light);
+  --glass-bg: rgba(27, 38, 59, 0.25);
+  --glass-border: rgba(65, 90, 119, 0.18);
+  --text-primary: var(--color-lightest);
+  --text-secondary: var(--color-light);
+}
+
+[data-theme="light"] {
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: var(--color-light);
+  --scrollbar-thumb-hover: var(--color-accent);
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a5568;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for interactive elements */
+.MuiButton-root,
+.MuiCard-root,
+.MuiPaper-root {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Enhanced hover effects */
+.MuiCard-root:hover {
+  transform: translateY(-2px);
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Gradient text utility - removed as it's now handled inline with theme-aware colors */
+
+/* Glass morphism effect */
+.glass-effect {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Modern shadows */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Responsive typography */
+@media (max-width: 600px) {
+  .MuiTypography-h1 {
+    font-size: 2rem !important;
+  }
+  
+  .MuiTypography-h2 {
+    font-size: 1.75rem !important;
+  }
+  
+  .MuiTypography-h3 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* Enhanced button styles */
+[data-theme="light"] .MuiButton-contained {
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  box-shadow: 0 4px 14px 0 rgba(13, 27, 42, 0.25);
+  color: white !important;
+}
+
+[data-theme="light"] .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--color-secondary) 0%, var(--color-accent) 100%);
+  box-shadow: 0 6px 20px 0 rgba(13, 27, 42, 0.35);
+}
+
+[data-theme="dark"] .MuiButton-contained {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-light) 100%);
+  box-shadow: 0 4px 14px 0 rgba(224, 225, 221, 0.25);
+}
+
+[data-theme="dark"] .MuiButton-contained:hover {
+  background: linear-gradient(135deg, var(--color-light) 0%, var(--color-lightest) 100%);
+  box-shadow: 0 6px 20px 0 rgba(224, 225, 221, 0.35);
+}
+
+/* Card enhancements */
+[data-theme="light"] .MuiCard-root {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: #ffffff !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .MuiCard-root {
+  border: 1px solid var(--color-accent);
+  background-color: var(--color-secondary) !important;
+}
+
+/* Modern input styles */
+.MuiTextField-root .MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+.MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-accent);
+}
+
+[data-theme="dark"] .MuiTextField-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--color-light);
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.6s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.6s ease-out;
+}
+
+/* Stagger animation for lists */
+.stagger-animation > * {
+  animation: fadeIn 0.6s ease-out;
+}
+
+.stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-animation > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-animation > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-animation > *:nth-child(6) { animation-delay: 0.6s; }
+/* Dark mo
+de specific styles */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Ensure proper contrast for dark mode */
+[data-theme="dark"] .MuiCard-root {
+  background-color: var(--color-secondary) !important;
+  border-color: var(--color-accent) !important;
+}
+
+[data-theme="dark"] .MuiPaper-root {
+  background-color: var(--color-secondary) !important;
+}
+
+[data-theme="dark"] .MuiAppBar-root {
+  background-color: var(--color-primary) !important;
+}
+
+/* Contact and Privacy page specific styles */
+.contact-form-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.contact-form-card:hover {
+  transform: translateY(-2px);
+}
+
+.privacy-section {
+  scroll-margin-top: 100px;
+}
+
+/* Enhanced animations for new pages */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive improvements for contact and privacy pages */
+@media (max-width: 768px) {
+  .contact-info-card {
+    margin-bottom: 1rem;
+  }
+  
+  .privacy-section {
+    padding: 1rem;
+  }
+}
+
+/* Theme transition for smooth dark mode switching */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Override Material-UI transitions for theme switching */
+.MuiCard-root,
+.MuiPaper-root,
+.MuiAppBar-root,
+.MuiButton-root {
+  transition: all 0.3s ease !important;
+}
+/*
+ Light mode text color fixes */
+[data-theme="light"] {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .MuiTypography-root {
+  color: inherit;
+}
+
+[data-theme="light"] .MuiTypography-h1,
+[data-theme="light"] .MuiTypography-h2,
+[data-theme="light"] .MuiTypography-h3,
+[data-theme="light"] .MuiTypography-h4,
+[data-theme="light"] .MuiTypography-h5,
+[data-theme="light"] .MuiTypography-h6 {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .MuiTypography-body1,
+[data-theme="light"] .MuiTypography-body2 {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] .MuiPaper-root {
+  background-color: #ffffff !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .MuiListItemText-primary {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .MuiListItemText-secondary {
+  color: var(--text-secondary) !important;
+}
+
+/* Fix for specific home page elements */
+[data-theme="light"] .MuiContainer-root {
+  color: var(--text-primary);
+}
+
+/* Ensure proper contrast for light mode buttons */
+[data-theme="light"] .MuiButton-outlined {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+[data-theme="light"] .MuiButton-outlined:hover {
+  background-color: rgba(13, 27, 42, 0.04);
+  border-color: var(--color-secondary);
+}/* 
+Additional light mode fixes */
+[data-theme="light"] body {
+  background-color: #fafafa !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] .MuiContainer-root {
+  background-color: transparent !important;
+}
+
+/* Fix for AppBar in light mode */
+[data-theme="light"] .MuiAppBar-root {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+}
+
+/* Ensure proper text contrast in light mode */
+[data-theme="light"] .MuiTypography-colorTextSecondary {
+  color: var(--text-secondary) !important;
+}
+
+/* Fix for dividers in light mode */
+[data-theme="light"] .MuiDivider-root {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Fix for icons in light mode */
+[data-theme="light"] .MuiSvgIcon-root {
+  color: inherit;
+}
+
+/* Fix for list items in light mode */
+[data-theme="light"] .MuiListItem-root {
+  color: var(--text-primary);
+}
+
+/* Ensure proper background for main content */
+[data-theme="light"] .App {
+  background-color: #fafafa;
+  min-height: 100vh;
+}/* Con
+tact and Privacy page specific fixes */
+[data-theme="light"] .MuiChip-outlined {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+[data-theme="light"] .MuiChip-colorPrimary {
+  background-color: rgba(13, 27, 42, 0.1);
+  color: var(--color-primary);
+}
+
+/* Fix for alert components in light mode */
+[data-theme="light"] .MuiAlert-root {
+  background-color: #ffffff;
+  color: var(--text-primary);
+}
+
+/* Fix for snackbar in light mode */
+[data-theme="light"] .MuiSnackbar-root .MuiAlert-standardSuccess {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+/* Ensure proper spacing and backgrounds for form elements */
+[data-theme="light"] .MuiTextField-root .MuiInputBase-root {
+  background-color: #ffffff;
+}
+
+[data-theme="light"] .MuiTextField-root .MuiInputBase-input {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .MuiTextField-root .MuiInputLabel-root {
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .MuiTextField-root .MuiInputLabel-root.Mui-focused {
+  color: var(--color-primary);
+}

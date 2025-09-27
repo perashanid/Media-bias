@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-import { Assessment, Article, Compare, Analytics, CloudDownload, Login } from '@mui/icons-material';
+import { Assessment, Article, Compare, Analytics, CloudDownload, Login, DarkMode, LightMode, Info, PrivacyTip } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import LoginDialog from './LoginDialog';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
+  const { darkMode, toggleDarkMode } = useTheme();
   const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -18,6 +20,8 @@ const Navbar: React.FC = () => {
     { path: '/comparison', label: 'Comparison', icon: <Compare /> },
     { path: '/analyzer', label: 'Analyzer', icon: <Analytics /> },
     { path: '/scraper', label: 'Scraper', icon: <CloudDownload /> },
+    { path: '/contact', label: 'Contact', icon: <Info /> },
+    { path: '/privacy', label: 'Privacy', icon: <PrivacyTip /> },
   ];
 
   const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -35,16 +39,17 @@ const Navbar: React.FC = () => {
 
   return (
     <AppBar position="static">
-      <Toolbar>
+      <Toolbar sx={{ py: 1 }}>
         <Typography 
-          variant="h6" 
+          variant="h5" 
           component={Link} 
           to="/" 
           sx={{ 
             flexGrow: 1, 
             textDecoration: 'none', 
-            color: 'inherit',
+            color: 'white',
             cursor: 'pointer',
+            fontWeight: 700,
             '&:hover': {
               opacity: 0.8
             }
@@ -52,21 +57,43 @@ const Navbar: React.FC = () => {
         >
           Media Bias Detector
         </Typography>
-        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 0.5, alignItems: 'center' }}>
           {navItems.map((item) => (
             <Button
               key={item.path}
-              color="inherit"
               component={Link}
               to={item.path}
               startIcon={item.icon}
               sx={{
+                color: location.pathname === item.path ? 'white' : 'rgba(255, 255, 255, 0.7)',
                 backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                fontWeight: location.pathname === item.path ? 600 : 500,
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: 'white',
+                }
               }}
             >
               {item.label}
             </Button>
           ))}
+          
+          <IconButton
+            onClick={toggleDarkMode}
+            sx={{
+              ml: 1,
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&:hover': {
+                color: 'white',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }
+            }}
+          >
+            {darkMode ? <LightMode /> : <DarkMode />}
+          </IconButton>
           
           {isAuthenticated ? (
             <>
@@ -77,9 +104,15 @@ const Navbar: React.FC = () => {
                 aria-controls="user-menu"
                 aria-haspopup="true"
                 onClick={handleUserMenuOpen}
-                color="inherit"
+                sx={{ ml: 2 }}
               >
-                <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
+                <Avatar sx={{ 
+                  width: 36, 
+                  height: 36, 
+                  bgcolor: 'primary.main',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                }}>
                   {user?.username.charAt(0).toUpperCase()}
                 </Avatar>
               </IconButton>
@@ -97,20 +130,30 @@ const Navbar: React.FC = () => {
                 }}
                 open={Boolean(anchorEl)}
                 onClose={handleUserMenuClose}
+                sx={{
+                  '& .MuiPaper-root': {
+                    borderRadius: 2,
+                    mt: 1,
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                  }
+                }}
               >
                 <MenuItem disabled>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                     {user?.username}
                   </Typography>
                 </MenuItem>
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                  Logout
+                </MenuItem>
               </Menu>
             </>
           ) : (
             <Button
-              color="inherit"
+              variant="contained"
               startIcon={<Login />}
               onClick={() => setLoginDialogOpen(true)}
+              sx={{ ml: 2, borderRadius: 2 }}
             >
               Login
             </Button>

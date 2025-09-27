@@ -9,6 +9,8 @@ import ArticleDetail from './pages/ArticleDetail';
 import ComparisonView from './pages/ComparisonView';
 import BiasAnalyzer from './pages/BiasAnalyzer';
 import ManualScraper from './pages/ManualScraper';
+import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
 import { DashboardProvider } from './contexts/DashboardContext';
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -27,6 +29,8 @@ function App() {
               <Route path="/comparison" element={<ComparisonView />} />
               <Route path="/analyzer" element={<BiasAnalyzer />} />
               <Route path="/scraper" element={<ManualScraper />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/privacy" element={<Privacy />} />
             </Routes>
           </Container>
         </div>

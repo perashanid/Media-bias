@@ -1,32 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+import '@fontsource/inter/300.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import './styles/modern.css';
 import App from './App';
+import { CustomThemeProvider } from './contexts/ThemeContext';
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#dc004e',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 500,
-    },
-  },
-});
+const AppWithTheme: React.FC = () => {
+  useEffect(() => {
+    // Set theme attribute on document for CSS variables
+    const updateThemeAttribute = () => {
+      const isDark = localStorage.getItem('darkMode') === 'true';
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    };
+
+    updateThemeAttribute();
+    
+    // Listen for theme changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'darkMode') {
+        updateThemeAttribute();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  return <App />;
+};
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -35,10 +41,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App />
-      </ThemeProvider>
+      <CustomThemeProvider>
+        <AppWithTheme />
+      </CustomThemeProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
