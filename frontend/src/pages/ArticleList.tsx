@@ -738,94 +738,37 @@ const ArticleList: React.FC = () => {
                   Page {page} of {totalPages} ({totalArticles} total articles)
                 </Typography>
                 
-                {/* Always show pagination controls for navigation */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => handlePageChange(null as any, Math.max(1, page - 1))}
-                    disabled={page <= 1}
-                    sx={{
-                      minWidth: '80px',
+                {/* Single pagination component - always show when articles exist */}
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={handlePageChange}
+                  showFirstButton
+                  showLastButton
+                  sx={{
+                    '& .MuiPaginationItem-root': {
                       color: '#0D1B2A',
                       borderColor: '#778DA9',
+                      fontWeight: 500,
                       '&:hover': {
                         bgcolor: '#778DA9',
                         color: '#E0E1DD'
                       },
-                      '&.Mui-disabled': {
-                        color: '#778DA9',
-                        borderColor: '#778DA9',
-                        opacity: 0.5
-                      }
-                    }}
-                  >
-                    Previous
-                  </Button>
-                  
-                  <Typography variant="body2" sx={{ 
-                    color: '#1B263B', 
-                    fontWeight: 600,
-                    mx: 2,
-                    minWidth: '60px',
-                    textAlign: 'center'
-                  }}>
-                    {page} / {totalPages}
-                  </Typography>
-                  
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => handlePageChange(null as any, Math.min(totalPages, page + 1))}
-                    disabled={page >= totalPages}
-                    sx={{
-                      minWidth: '80px',
-                      color: '#0D1B2A',
-                      borderColor: '#778DA9',
-                      '&:hover': {
-                        bgcolor: '#778DA9',
-                        color: '#E0E1DD'
-                      },
-                      '&.Mui-disabled': {
-                        color: '#778DA9',
-                        borderColor: '#778DA9',
-                        opacity: 0.5
-                      }
-                    }}
-                  >
-                    Next
-                  </Button>
-                </Box>
-
-                {/* Show full pagination for multiple pages */}
-                {totalPages > 3 && (
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={handlePageChange}
-                    showFirstButton
-                    showLastButton
-                    size="small"
-                    sx={{
-                      '& .MuiPaginationItem-root': {
-                        color: '#0D1B2A',
-                        borderColor: '#778DA9',
-                        fontWeight: 500,
+                      '&.Mui-selected': {
+                        bgcolor: '#1B263B',
+                        color: '#E0E1DD',
                         '&:hover': {
-                          bgcolor: '#778DA9',
-                          color: '#E0E1DD'
-                        },
-                        '&.Mui-selected': {
-                          bgcolor: '#1B263B',
-                          color: '#E0E1DD',
-                          '&:hover': {
-                            bgcolor: '#415A77'
-                          }
+                          bgcolor: '#415A77'
                         }
+                      },
+                      '&.Mui-disabled': {
+                        color: '#778DA9',
+                        borderColor: '#778DA9',
+                        opacity: 0.5
                       }
-                    }}
-                  />
-                )}
+                    }
+                  }}
+                />
                 
                 {totalPages === 1 && (
                   <Typography variant="body2" sx={{ color: '#415A77', fontStyle: 'italic' }}>
