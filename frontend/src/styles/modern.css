@@ -459,29 +459,120 @@ Fix navbar title visibility in light mode */
 
 [data-theme="light"] .MuiAppBar-root .MuiIconButton-root:hover {
   color: white !important;
-}/* Get
- Started section fixes for light mode */
-[data-theme="light"] .MuiPaper-root h3,
-[data-theme="light"] .MuiPaper-root h6 {
+}
+
+/* Get Started section fixes - force white text on gradient background */
+.MuiPaper-root[style*="linear-gradient"] {
+  color: white !important;
+}
+
+.MuiPaper-root[style*="linear-gradient"] * {
+  color: white !important;
+}
+
+.MuiPaper-root[style*="linear-gradient"] .MuiTypography-root {
+  color: white !important;
+}
+
+.MuiPaper-root[style*="linear-gradient"] .MuiTypography-h3 {
+  color: white !important;
+}
+
+.MuiPaper-root[style*="linear-gradient"] .MuiTypography-h6 {
   color: white !important;
 }
 
 /* Ensure buttons in Get Started section have proper colors */
-[data-theme="light"] .MuiPaper-root .MuiButton-contained {
+.MuiPaper-root[style*="linear-gradient"] .MuiButton-contained {
   background-color: white !important;
   color: #0D1B2A !important;
 }
 
-[data-theme="light"] .MuiPaper-root .MuiButton-contained:hover {
+.MuiPaper-root[style*="linear-gradient"] .MuiButton-contained:hover {
   background-color: #f5f5f5 !important;
+  color: #0D1B2A !important;
 }
 
-[data-theme="light"] .MuiPaper-root .MuiButton-outlined {
+.MuiPaper-root[style*="linear-gradient"] .MuiButton-outlined {
   border-color: white !important;
   color: white !important;
 }
 
-[data-theme="light"] .MuiPaper-root .MuiButton-outlined:hover {
+.MuiPaper-root[style*="linear-gradient"] .MuiButton-outlined:hover {
   background-color: rgba(255, 255, 255, 0.1) !important;
   border-color: rgba(255, 255, 255, 0.8) !important;
+  color: white !important;
+}/* 
+Specific Get Started section styling */
+.get-started-section {
+  color: white !important;
+}
+
+.get-started-section * {
+  color: white !important;
+}
+
+.get-started-section .MuiTypography-root {
+  color: white !important;
+}
+
+.get-started-section .MuiTypography-h3 {
+  color: white !important;
+}
+
+.get-started-section .MuiTypography-h6 {
+  color: white !important;
+}
+
+.get-started-section .MuiButton-contained {
+  background-color: white !important;
+  color: #0D1B2A !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.get-started-section .MuiButton-contained:hover {
+  background-color: #f5f5f5 !important;
+  color: #0D1B2A !important;
+  border: none !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.get-started-section .MuiButton-outlined {
+  border-color: white !important;
+  color: white !important;
+}
+
+.get-started-section .MuiButton-outlined:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  color: white !important;
+}/* For
+ce proper button styling in Get Started section */
+.get-started-section .MuiButton-root.MuiButton-contained {
+  background: white !important;
+  color: #0D1B2A !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.get-started-section .MuiButton-root.MuiButton-contained:hover {
+  background: #f5f5f5 !important;
+  color: #0D1B2A !important;
+  border: none !important;
+}
+
+/* Override any Material-UI theme conflicts */
+[data-theme="light"] .get-started-section .MuiButton-contained,
+[data-theme="dark"] .get-started-section .MuiButton-contained {
+  background-color: white !important;
+  color: #0D1B2A !important;
+  border: none !important;
+}
+
+[data-theme="light"] .get-started-section .MuiButton-contained:hover,
+[data-theme="dark"] .get-started-section .MuiButton-contained:hover {
+  background-color: #f5f5f5 !important;
+  color: #0D1B2A !important;
+  border: none !important;
 }

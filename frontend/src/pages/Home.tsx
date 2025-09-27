@@ -456,16 +456,42 @@ const Home: React.FC = () => {
       </Paper>
 
       {/* Get Started Section */}
-      <Paper sx={{ 
-        p: { xs: 4, md: 6 }, 
-        textAlign: 'center', 
-        background: (theme) => theme.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, #415A77 0%, #778DA9 100%)'
-          : 'linear-gradient(135deg, #0D1B2A 0%, #1B263B 100%)',
-        color: 'white',
-        borderRadius: 3,
-      }}>
-        <Typography variant="h3" gutterBottom sx={{ fontWeight: 600 }}>
+      <Paper 
+        className="get-started-section"
+        sx={{ 
+          p: { xs: 4, md: 6 }, 
+          textAlign: 'center', 
+          background: (theme) => theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #415A77 0%, #778DA9 100%)'
+            : 'linear-gradient(135deg, #0D1B2A 0%, #1B263B 100%)',
+          color: 'white !important',
+          borderRadius: 3,
+          '& *': {
+            color: 'white !important',
+          },
+          '& .MuiTypography-root': {
+            color: 'white !important',
+          },
+          '& .MuiButton-contained': {
+            backgroundColor: 'white !important',
+            color: '#0D1B2A !important',
+            '&:hover': {
+              backgroundColor: '#f5f5f5 !important',
+              color: '#0D1B2A !important',
+            },
+          },
+          '& .MuiButton-outlined': {
+            borderColor: 'white !important',
+            color: 'white !important',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1) !important',
+              borderColor: 'rgba(255, 255, 255, 0.8) !important',
+              color: 'white !important',
+            },
+          },
+        }}
+      >
+        <Typography variant="h3" gutterBottom sx={{ fontWeight: 600, color: 'white !important' }}>
           Get Started
         </Typography>
         <Typography variant="h6" paragraph sx={{ 
@@ -474,6 +500,7 @@ const Home: React.FC = () => {
           mx: 'auto',
           fontWeight: 400,
           lineHeight: 1.6,
+          color: 'white !important',
         }}>
           Explore media bias patterns and make informed decisions about news consumption
         </Typography>
@@ -496,10 +523,12 @@ const Home: React.FC = () => {
               component={Link} 
               to="/dashboard" 
               sx={{ 
-                bgcolor: 'white', 
-                color: '#0D1B2A',
+                bgcolor: 'white !important', 
+                color: '#0D1B2A !important',
+                border: 'none !important',
                 '&:hover': { 
-                  bgcolor: '#f5f5f5',
+                  bgcolor: '#f5f5f5 !important',
+                  color: '#0D1B2A !important',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
                 } 
@@ -514,10 +543,12 @@ const Home: React.FC = () => {
               component={Link} 
               to="/articles" 
               sx={{ 
-                bgcolor: 'white', 
-                color: '#0D1B2A',
+                bgcolor: 'white !important', 
+                color: '#0D1B2A !important',
+                border: 'none !important',
                 '&:hover': { 
-                  bgcolor: '#f5f5f5',
+                  bgcolor: '#f5f5f5 !important',
+                  color: '#0D1B2A !important',
                   transform: 'translateY(-2px)',
                   boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
                 } 
