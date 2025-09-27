@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 interface User {
   id: string;
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const removeToken = () => localStorage.removeItem('auth_token');
 
   // API call helper with auth header
-  const apiCall = async (endpoint: string, options: RequestInit = {}) => {
+  const apiCall = useCallback(async (endpoint: string, options: RequestInit = {}) => {
     const token = getToken();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -79,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     return response;
-  };
+  }, [API_BASE_URL]);
 
   // Check if user is authenticated on app load
   useEffect(() => {
