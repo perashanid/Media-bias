@@ -227,7 +227,7 @@ const Comparison: React.FC = () => {
         <Button component={Link} to="/articles" startIcon={<ArrowBack />} sx={{ mb: 2 }}>
           Back to Articles
         </Button>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, color: 'primary.main' }}>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, color: '#0D1B2A' }}>
           Article Comparison
         </Typography>
         <Typography variant="body1" color="text.secondary">
@@ -245,7 +245,7 @@ const Comparison: React.FC = () => {
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid item xs={12} md={3}>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="primary" sx={{ fontWeight: 700 }}>
+                <Typography variant="h4" sx={{ color: '#1B263B', fontWeight: 700 }}>
                   {(comparisonData.bias_comparison.average_bias * 100).toFixed(1)}%
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -255,7 +255,7 @@ const Comparison: React.FC = () => {
             </Grid>
             <Grid item xs={12} md={3}>
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="secondary" sx={{ fontWeight: 700 }}>
+                <Typography variant="h4" sx={{ color: '#415A77', fontWeight: 700 }}>
                   {(comparisonData.bias_comparison.bias_variance * 100).toFixed(1)}%
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
@@ -337,7 +337,7 @@ const Comparison: React.FC = () => {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip label={article.source} size="small" color="primary" />
+                    <Chip label={article.source} size="small" sx={{ bgcolor: '#1B263B', color: '#E0E1DD' }} />
                   </TableCell>
                   <TableCell>
                     <Chip label={article.language} size="small" variant="outlined" />
@@ -370,8 +370,7 @@ const Comparison: React.FC = () => {
                         <LinearProgress
                           variant="determinate"
                           value={article.bias_scores.sentiment_score * 100}
-                          color="secondary"
-                          sx={{ mt: 1, height: 4, borderRadius: 2 }}
+                          sx={{ bgcolor: '#415A77', mt: 1, height: 4, borderRadius: 2 }}
                         />
                       </Box>
                     )}
@@ -398,7 +397,7 @@ const Comparison: React.FC = () => {
             <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
               <CardContent sx={{ flexGrow: 1, p: 3 }}>
                 <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  <Chip label={article.source} size="small" color="primary" />
+                  <Chip label={article.source} size="small" sx={{ bgcolor: '#1B263B', color: '#E0E1DD' }} />
                   <Chip
                     label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
                     size="small"

@@ -19,13 +19,6 @@ import {
   FormControlLabel,
   Fab,
   Badge,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
   Divider,
   Paper,
 } from '@mui/material';
@@ -43,7 +36,7 @@ import {
 } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { articlesApi, comparisonApi } from '../services/api';
+import { articlesApi } from '../services/api';
 import { Article } from '../types/Article';
 import BiasScoreCard from '../components/BiasScoreCard';
 import { useAuth } from '../contexts/AuthContext';
@@ -128,14 +121,39 @@ const ArticleList: React.FC = () => {
 
       setArticles(filteredArticles);
       
-      // For server-side pagination, we need to get total count from API
-      // For now, estimate based on current page results
+      // Use server-provided total count for pagination
       const totalCount = response.total_count || response.count || filteredArticles.length;
       setTotalArticles(totalCount);
       
       // Calculate total pages based on actual total count
-      const calculatedPages = Math.ceil(totalCount / articlesPerPage);
-      setTotalPages(calculatedPages > 0 ? calculatedPages : 1);
+      let calculatedPages = Math.ceil(totalCount / articlesPerPage);
+      
+      // Ensure we always have at least 1 page if there are articles
+      if (filteredArticles.length > 0 && calculatedPages === 0) {
+        calculatedPages = 1;
+      }
+      
+      // If we have a full page of articles but no total count, estimate there might be more
+      if (!response.total_count && filteredArticles.length === articlesPerPage && response.has_more !== false) {
+        // Estimate there are more pages available
+        const estimatedTotal = Math.max(totalCount, (page * articlesPerPage) + 1);
+        setTotalArticles(estimatedTotal);
+        calculatedPages = Math.ceil(estimatedTotal / articlesPerPage);
+      }
+      
+      setTotalPages(calculatedPages);
+      
+      // Debug logging
+      console.log('Pagination Debug:', {
+        totalCount,
+        articlesPerPage,
+        calculatedPages,
+        currentPage: page,
+        responseCount: response.count,
+        responseTotalCount: response.total_count,
+        hasMore: response.has_more,
+        articlesLength: filteredArticles.length
+      });
 
       // Extract unique sources for filters
       const sources = Array.from(new Set(response.articles.map((article: Article) => article.source))) as string[];
@@ -193,11 +211,8 @@ const ArticleList: React.FC = () => {
 
     setComparing(true);
     try {
-      // Create comparison using the first selected article as base
-      const articleIds = Array.from(selectedArticles);
-      const baseArticleId = articleIds[0];
-      
       // Navigate to comparison page with selected articles
+      const articleIds = Array.from(selectedArticles);
       const params = new URLSearchParams();
       params.set('articles', articleIds.join(','));
       navigate(`/comparison?${params.toString()}`);
@@ -705,15 +720,119 @@ const ArticleList: React.FC = () => {
             ))}
           </Grid>
 
-          {/* Pagination */}
-          {articles.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={handlePageChange}
-                color="primary"
-              />
+          {/* Pagination - Always show for navigation */}
+          {!loading && articles.length > 0 && (
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              mt: 4, 
+              mb: 4,
+              p: 3,
+              bgcolor: '#E0E1DD',
+              borderRadius: 2,
+              border: '1px solid #778DA9'
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+                <Typography variant="body2" sx={{ color: '#0D1B2A', fontWeight: 500 }}>
+                  Page {page} of {totalPages} ({totalArticles} total articles)
+                </Typography>
+                
+                {/* Always show pagination controls for navigation */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handlePageChange(null as any, Math.max(1, page - 1))}
+                    disabled={page <= 1}
+                    sx={{
+                      minWidth: '80px',
+                      color: '#0D1B2A',
+                      borderColor: '#778DA9',
+                      '&:hover': {
+                        bgcolor: '#778DA9',
+                        color: '#E0E1DD'
+                      },
+                      '&.Mui-disabled': {
+                        color: '#778DA9',
+                        borderColor: '#778DA9',
+                        opacity: 0.5
+                      }
+                    }}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <Typography variant="body2" sx={{ 
+                    color: '#1B263B', 
+                    fontWeight: 600,
+                    mx: 2,
+                    minWidth: '60px',
+                    textAlign: 'center'
+                  }}>
+                    {page} / {totalPages}
+                  </Typography>
+                  
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handlePageChange(null as any, Math.min(totalPages, page + 1))}
+                    disabled={page >= totalPages}
+                    sx={{
+                      minWidth: '80px',
+                      color: '#0D1B2A',
+                      borderColor: '#778DA9',
+                      '&:hover': {
+                        bgcolor: '#778DA9',
+                        color: '#E0E1DD'
+                      },
+                      '&.Mui-disabled': {
+                        color: '#778DA9',
+                        borderColor: '#778DA9',
+                        opacity: 0.5
+                      }
+                    }}
+                  >
+                    Next
+                  </Button>
+                </Box>
+
+                {/* Show full pagination for multiple pages */}
+                {totalPages > 3 && (
+                  <Pagination
+                    count={totalPages}
+                    page={page}
+                    onChange={handlePageChange}
+                    showFirstButton
+                    showLastButton
+                    size="small"
+                    sx={{
+                      '& .MuiPaginationItem-root': {
+                        color: '#0D1B2A',
+                        borderColor: '#778DA9',
+                        fontWeight: 500,
+                        '&:hover': {
+                          bgcolor: '#778DA9',
+                          color: '#E0E1DD'
+                        },
+                        '&.Mui-selected': {
+                          bgcolor: '#1B263B',
+                          color: '#E0E1DD',
+                          '&:hover': {
+                            bgcolor: '#415A77'
+                          }
+                        }
+                      }
+                    }}
+                  />
+                )}
+                
+                {totalPages === 1 && (
+                  <Typography variant="body2" sx={{ color: '#415A77', fontStyle: 'italic' }}>
+                    All articles shown
+                  </Typography>
+                )}
+              </Box>
             </Box>
           )}
 

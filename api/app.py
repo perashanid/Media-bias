@@ -185,10 +185,8 @@ def get_articles():
             except ValueError:
                 return jsonify({'error': 'Invalid date format. Use ISO format (YYYY-MM-DD)'}), 400
         else:
-            # Get recent articles (default)
-            end_dt = datetime.now()
-            start_dt = end_dt - timedelta(days=7)
-            articles = storage_service.get_articles_by_date_range(start_dt, end_dt, limit)
+            # Get all articles (default) - most recent first
+            articles = storage_service.get_recent_articles(limit, skip)
         
         # Filter articles for current user (if authenticated)
         current_user_id = get_current_user_id()
@@ -209,14 +207,12 @@ def get_articles():
             total_count = storage_service.get_articles_count_by_topic(topic)
         elif source:
             total_count = storage_service.get_articles_count_by_source(source)
-        else:
+        elif start_date and end_date:
             # For date range, get total count in that range
-            if start_date and end_date:
-                total_count = storage_service.get_articles_count_by_date_range(start_dt, end_dt)
-            else:
-                end_dt = datetime.now()
-                start_dt = end_dt - timedelta(days=7)
-                total_count = storage_service.get_articles_count_by_date_range(start_dt, end_dt)
+            total_count = storage_service.get_articles_count_by_date_range(start_dt, end_dt)
+        else:
+            # Get total count of all articles
+            total_count = storage_service.get_total_articles_count()
         
         return jsonify({
             'articles': articles_json,

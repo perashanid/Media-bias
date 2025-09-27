@@ -136,7 +136,7 @@ const Home: React.FC = () => {
           borderColor: 'grey.200',
           borderRadius: 3,
         }}>
-          <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 6, color: 'primary.main' }}>
+          <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 6, color: '#0D1B2A' }}>
             Platform Statistics
           </Typography>
           
@@ -147,20 +147,20 @@ const Home: React.FC = () => {
                 textAlign: 'center', 
                 p: 3,
                 height: '100%',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #1B263B 0%, #415A77 100%)',
+                color: '#E0E1DD',
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+                  boxShadow: '0 8px 25px rgba(27, 38, 59, 0.4)',
                 }
               }}>
                 <CardContent>
-                  <Article sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
-                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                  <Article sx={{ fontSize: 48, mb: 2, color: '#E0E1DD' }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#E0E1DD' }}>
                     {stats.total_articles.toLocaleString()}
                   </Typography>
-                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                  <Typography variant="h6" sx={{ color: '#E0E1DD', opacity: 0.9 }}>
                     Total Articles
                   </Typography>
                 </CardContent>
@@ -173,20 +173,20 @@ const Home: React.FC = () => {
                 textAlign: 'center', 
                 p: 3,
                 height: '100%',
-                background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #415A77 0%, #778DA9 100%)',
+                color: '#E0E1DD',
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 25px rgba(240, 147, 251, 0.3)',
+                  boxShadow: '0 8px 25px rgba(65, 90, 119, 0.4)',
                 }
               }}>
                 <CardContent>
-                  <Psychology sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
-                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                  <Psychology sx={{ fontSize: 48, mb: 2, color: '#E0E1DD' }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#E0E1DD' }}>
                     {stats.analyzed_articles.toLocaleString()}
                   </Typography>
-                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                  <Typography variant="h6" sx={{ color: '#E0E1DD', opacity: 0.9 }}>
                     Analyzed Articles
                   </Typography>
                   <Chip 
@@ -194,8 +194,8 @@ const Home: React.FC = () => {
                     size="small" 
                     sx={{ 
                       mt: 1, 
-                      bgcolor: 'rgba(255,255,255,0.2)', 
-                      color: 'white',
+                      bgcolor: '#0D1B2A', 
+                      color: '#E0E1DD',
                       fontWeight: 600 
                     }} 
                   />
@@ -209,20 +209,20 @@ const Home: React.FC = () => {
                 textAlign: 'center', 
                 p: 3,
                 height: '100%',
-                background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #778DA9 0%, #E0E1DD 100%)',
+                color: '#0D1B2A',
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 25px rgba(79, 172, 254, 0.3)',
+                  boxShadow: '0 8px 25px rgba(119, 141, 169, 0.4)',
                 }
               }}>
                 <CardContent>
-                  <People sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
-                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                  <People sx={{ fontSize: 48, mb: 2, color: '#0D1B2A' }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#0D1B2A' }}>
                     {stats.total_users.toLocaleString()}
                   </Typography>
-                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                  <Typography variant="h6" sx={{ color: '#0D1B2A', opacity: 0.8 }}>
                     Registered Users
                   </Typography>
                 </CardContent>
@@ -235,20 +235,20 @@ const Home: React.FC = () => {
                 textAlign: 'center', 
                 p: 3,
                 height: '100%',
-                background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                color: 'white',
+                background: 'linear-gradient(135deg, #778DA9 0%, #E0E1DD 100%)',
+                color: '#0D1B2A',
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 25px rgba(250, 112, 154, 0.3)',
+                  boxShadow: '0 8px 25px rgba(119, 141, 169, 0.3)',
                 }
               }}>
                 <CardContent>
-                  <TrendingUp sx={{ fontSize: 48, mb: 2, opacity: 0.9 }} />
-                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
+                  <TrendingUp sx={{ fontSize: 48, mb: 2, color: '#0D1B2A' }} />
+                  <Typography variant="h3" sx={{ fontWeight: 700, mb: 1, color: '#0D1B2A' }}>
                     {stats.total_sources}
                   </Typography>
-                  <Typography variant="h6" sx={{ opacity: 0.9 }}>
+                  <Typography variant="h6" sx={{ color: '#0D1B2A', opacity: 0.8 }}>
                     News Sources
                   </Typography>
                 </CardContent>
@@ -260,10 +260,20 @@ const Home: React.FC = () => {
           <Grid container spacing={4}>
             {/* Language Distribution */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ p: 3, height: '100%' }}>
+              <Card sx={{ 
+                p: 3, 
+                height: '100%',
+                border: '2px solid #E0E1DD',
+                borderRadius: 3,
+                bgcolor: '#FAFAFA',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(13, 27, 42, 0.1)',
+                  transform: 'translateY(-2px)'
+                }
+              }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Language sx={{ fontSize: 32, color: '#1B263B', mr: 2 }} />
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: '#0D1B2A' }}>
                     Language Distribution
                   </Typography>
                 </Box>
@@ -273,11 +283,16 @@ const Home: React.FC = () => {
                       key={lang._id || index}
                       label={`${lang._id || 'Unknown'}: ${lang.count.toLocaleString()}`}
                       sx={{ 
-                        fontWeight: 500,
-                        bgcolor: lang._id === 'bengali' ? '#1B263B' : '#415A77',
-                        color: '#E0E1DD'
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        bgcolor: lang._id === 'bengali' ? '#415A77' : '#778DA9',
+                        color: '#E0E1DD',
+                        border: `2px solid ${lang._id === 'bengali' ? '#1B263B' : '#415A77'}`,
+                        '&:hover': {
+                          bgcolor: lang._id === 'bengali' ? '#1B263B' : '#415A77',
+                          transform: 'scale(1.05)'
+                        }
                       }}
-                      variant="outlined"
                     />
                   ))}
                 </Box>
@@ -286,10 +301,20 @@ const Home: React.FC = () => {
 
             {/* Bias Distribution */}
             <Grid item xs={12} md={6}>
-              <Card sx={{ p: 3, height: '100%' }}>
+              <Card sx={{ 
+                p: 3, 
+                height: '100%',
+                border: '2px solid #E0E1DD',
+                borderRadius: 3,
+                bgcolor: '#FAFAFA',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(13, 27, 42, 0.1)',
+                  transform: 'translateY(-2px)'
+                }
+              }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <BarChart sx={{ fontSize: 32, color: '#1B263B', mr: 2 }} />
-                  <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600, color: '#0D1B2A' }}>
                     Bias Distribution
                   </Typography>
                 </Box>
@@ -298,12 +323,20 @@ const Home: React.FC = () => {
                     <Chip
                       key={bias._id || index}
                       label={`${bias._id}: ${bias.count.toLocaleString()}`}
-                      color={
-                        bias._id === 'Low Bias' ? 'success' : 
-                        bias._id === 'Moderate Bias' ? 'warning' : 'error'
-                      }
-                      variant="outlined"
-                      sx={{ fontWeight: 500 }}
+                      sx={{ 
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        bgcolor: bias._id === 'Low Bias' ? '#778DA9' : 
+                                 bias._id === 'Moderate Bias' ? '#415A77' : '#1B263B',
+                        color: '#E0E1DD',
+                        border: `2px solid ${bias._id === 'Low Bias' ? '#415A77' : 
+                                             bias._id === 'Moderate Bias' ? '#1B263B' : '#0D1B2A'}`,
+                        '&:hover': {
+                          transform: 'scale(1.05)',
+                          bgcolor: bias._id === 'Low Bias' ? '#415A77' : 
+                                   bias._id === 'Moderate Bias' ? '#1B263B' : '#0D1B2A'
+                        }
+                      }}
                     />
                   ))}
                 </Box>
@@ -322,7 +355,7 @@ const Home: React.FC = () => {
         borderColor: 'grey.200',
         borderRadius: 3,
       }}>
-        <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 2, color: 'primary.main' }}>
+        <Typography variant="h2" gutterBottom sx={{ textAlign: 'center', mb: 2, color: '#0D1B2A' }}>
           About Media Bias Detector
         </Typography>
         <Typography variant="h6" paragraph sx={{ 
@@ -571,7 +604,7 @@ const Home: React.FC = () => {
                 boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#1B263B', fontWeight: 600, mb: 1 }}>
                 Prothom Alo
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -590,7 +623,7 @@ const Home: React.FC = () => {
                 boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#1B263B', fontWeight: 600, mb: 1 }}>
                 The Daily Star
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -609,7 +642,7 @@ const Home: React.FC = () => {
                 boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#1B263B', fontWeight: 600, mb: 1 }}>
                 BD Pratidin
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -628,7 +661,7 @@ const Home: React.FC = () => {
                 boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#1B263B', fontWeight: 600, mb: 1 }}>
                 Ekattor TV
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -647,7 +680,7 @@ const Home: React.FC = () => {
                 boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#1B263B', fontWeight: 600, mb: 1 }}>
                 ATN News
               </Typography>
               <Typography variant="body1" color="text.secondary">
@@ -666,7 +699,7 @@ const Home: React.FC = () => {
                 boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
               }
             }}>
-              <Typography variant="h5" color="primary" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant="h5" sx={{ color: '#1B263B', fontWeight: 600, mb: 1 }}>
                 Jamuna TV
               </Typography>
               <Typography variant="body1" color="text.secondary">

@@ -351,3 +351,31 @@ class ArticleStorageService:
         except Exception as e:
             logger.error(f"Failed to get articles count by date range: {e}")
             return 0
+    
+    def get_recent_articles(self, limit: int = 50, skip: int = 0) -> List[Article]:
+        """Get recent articles with pagination"""
+        try:
+            cursor = self.articles_collection.find().sort('publication_date', -1).skip(skip).limit(limit)
+            
+            articles = []
+            for doc in cursor:
+                try:
+                    article = Article.from_dict(doc)
+                    articles.append(article)
+                except Exception as e:
+                    logger.warning(f"Failed to convert document to Article: {e}")
+                    continue
+            
+            return articles
+            
+        except Exception as e:
+            logger.error(f"Failed to get recent articles: {e}")
+            return []
+    
+    def get_total_articles_count(self) -> int:
+        """Get total count of all articles"""
+        try:
+            return self.articles_collection.count_documents({})
+        except Exception as e:
+            logger.error(f"Failed to get total articles count: {e}")
+            return 0

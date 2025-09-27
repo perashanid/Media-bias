@@ -178,15 +178,15 @@ const ManualScraper: React.FC = () => {
   };
 
   const getBiasLabel = (score: number) => {
-    if (score < 0.4) return { label: 'Left-leaning', color: 'primary' as const };
-    if (score > 0.6) return { label: 'Right-leaning', color: 'secondary' as const };
-    return { label: 'Center', color: 'default' as const };
+    if (score < 0.4) return { label: 'Left-leaning', bgcolor: '#1B263B', color: '#E0E1DD' };
+    if (score > 0.6) return { label: 'Right-leaning', bgcolor: '#415A77', color: '#E0E1DD' };
+    return { label: 'Center', bgcolor: '#778DA9', color: '#0D1B2A' };
   };
 
   const getSentimentLabel = (score: number) => {
-    if (score < 0.4) return { label: 'Negative', color: 'error' as const };
-    if (score > 0.6) return { label: 'Positive', color: 'success' as const };
-    return { label: 'Neutral', color: 'default' as const };
+    if (score < 0.4) return { label: 'Negative', bgcolor: '#415A77', color: '#E0E1DD' };
+    if (score > 0.6) return { label: 'Positive', bgcolor: '#1B263B', color: '#E0E1DD' };
+    return { label: 'Neutral', bgcolor: '#778DA9', color: '#0D1B2A' };
   };
 
   return (
@@ -443,7 +443,7 @@ const ManualScraper: React.FC = () => {
                       <Chip 
                         label={testResult.article.language} 
                         size="small" 
-                        color="primary" 
+                        sx={{ bgcolor: '#1B263B', color: '#E0E1DD' }} 
                       />
                     </Box>
                     <Typography variant="body2" color="text.secondary" paragraph>
@@ -467,13 +467,19 @@ const ManualScraper: React.FC = () => {
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                       <Chip
                         label={`Political: ${getBiasLabel(testResult.bias_analysis.political_bias).label}`}
-                        color={getBiasLabel(testResult.bias_analysis.political_bias).color}
                         size="small"
+                        sx={{
+                          bgcolor: getBiasLabel(testResult.bias_analysis.political_bias).bgcolor,
+                          color: getBiasLabel(testResult.bias_analysis.political_bias).color
+                        }}
                       />
                       <Chip
                         label={`Sentiment: ${getSentimentLabel(testResult.bias_analysis.sentiment_score).label}`}
-                        color={getSentimentLabel(testResult.bias_analysis.sentiment_score).color}
                         size="small"
+                        sx={{
+                          bgcolor: getSentimentLabel(testResult.bias_analysis.sentiment_score).bgcolor,
+                          color: getSentimentLabel(testResult.bias_analysis.sentiment_score).color
+                        }}
                       />
                       <Chip
                         label={`Factual: ${(testResult.bias_analysis.factual_vs_opinion * 100).toFixed(0)}%`}

@@ -109,7 +109,7 @@ const Navbar: React.FC = () => {
                 <Avatar sx={{ 
                   width: 36, 
                   height: 36, 
-                  bgcolor: 'primary.main',
+                  bgcolor: '#1B263B',
                   fontSize: '1rem',
                   fontWeight: 600,
                 }}>
@@ -143,7 +143,7 @@ const Navbar: React.FC = () => {
                     {user?.username}
                   </Typography>
                 </MenuItem>
-                <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
+                <MenuItem onClick={handleLogout} sx={{ color: '#415A77' }}>
                   Logout
                 </MenuItem>
               </Menu>
