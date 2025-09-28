@@ -53,10 +53,24 @@ const Home: React.FC = () => {
     const fetchHomeData = async () => {
       try {
         const response = await fetch('/api/statistics/overview');
-        const data = await response.json();
-        if (data.success && data.stats) {
-          setStats(data.stats);
+        if (response.ok) {
+          const data = await response.json();
+          console.log('API Response:', data); // Debug log
+          
+          // The API returns the stats directly, not wrapped in a success object
+          setStats({
+            total_articles: data.total_articles || 0,
+            recent_articles: data.recent_articles || 0,
+            total_users: data.total_users || 0,
+            analyzed_articles: data.analyzed_articles || 0,
+            total_sources: Object.keys(data.source_counts || {}).length,
+            analysis_coverage: data.total_articles > 0 ? Math.round((data.analyzed_articles / data.total_articles) * 100) : 0,
+            language_stats: Object.entries(data.language_distribution || {}).map(([key, value]) => ({ _id: key, count: value as number })),
+            bias_distribution: Object.entries(data.bias_distribution || {}).map(([key, value]) => ({ _id: key, count: value as number })),
+            top_sources: Object.entries(data.source_counts || {}).map(([key, value]) => ({ _id: key, count: value as number })).slice(0, 6)
+          });
         } else {
+          console.error('Failed to fetch stats:', response.status, response.statusText);
           // Set default stats if API fails
           setStats({
             total_articles: 0,

@@ -32,11 +32,11 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='')
 
-# Configure CORS for production
-if os.getenv('FLASK_ENV') == 'production':
-    CORS(app, origins=['https://your-app-name.onrender.com'])
-else:
-    CORS(app)  # Allow all origins in development
+# Configure CORS
+CORS(app, 
+     origins=['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000', 'http://127.0.0.1:5000'],
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
 
 # Register blueprints
 app.register_blueprint(articles_bp)

@@ -75,53 +75,35 @@ def get_overview_statistics():
         top_sources = top_sources[:10]  # Limit to top 10
         
         return jsonify({
-            'success': True,
             'total_articles': total_articles,
             'analyzed_articles': analyzed_articles,
-            'unanalyzed_articles': storage_stats.get('unanalyzed_articles', 0),
             'recent_articles': recent_articles,
+            'total_users': total_users,
             'language_distribution': language_distribution,
-            'source_distribution': source_counts,
-            'analysis_coverage': {
-                'percentage': (analyzed_articles / max(total_articles, 1)) * 100
+            'source_counts': source_counts,
+            'bias_distribution': {
+                'left': sum(1 for item in bias_distribution if item['_id'] == 'Low Bias'),
+                'center': sum(1 for item in bias_distribution if item['_id'] == 'Moderate Bias'),
+                'right': sum(1 for item in bias_distribution if item['_id'] == 'High Bias')
             },
-            # Additional stats for home page
-            'stats': {
-                'total_articles': total_articles,
-                'recent_articles': recent_articles,
-                'total_users': total_users,
-                'analyzed_articles': analyzed_articles,
-                'total_sources': total_sources,
-                'language_stats': language_stats,
-                'bias_distribution': bias_distribution,
-                'top_sources': top_sources,
-                'analysis_coverage': round((analyzed_articles / max(total_articles, 1)) * 100, 1)
+            'sentiment_distribution': {
+                'positive': 0,  # Will be calculated from actual data
+                'neutral': 0,
+                'negative': 0
             }
         })
         
     except Exception as e:
         logger.error(f"Failed to get overview statistics: {e}")
         return jsonify({
-            'success': False,
-            'error': 'Failed to retrieve overview statistics',
             'total_articles': 0,
             'analyzed_articles': 0,
-            'unanalyzed_articles': 0,
             'recent_articles': 0,
+            'total_users': 0,
             'language_distribution': {},
-            'source_distribution': {},
-            'analysis_coverage': {'percentage': 0},
-            'stats': {
-                'total_articles': 0,
-                'recent_articles': 0,
-                'total_users': 0,
-                'analyzed_articles': 0,
-                'total_sources': 0,
-                'language_stats': [],
-                'bias_distribution': [],
-                'top_sources': [],
-                'analysis_coverage': 0
-            }
+            'source_counts': {},
+            'bias_distribution': {'left': 0, 'center': 0, 'right': 0},
+            'sentiment_distribution': {'positive': 0, 'neutral': 0, 'negative': 0}
         }), 200
 
 

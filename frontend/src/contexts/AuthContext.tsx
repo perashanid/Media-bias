@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
   // Get stored token
   const getToken = () => localStorage.getItem('auth_token');
@@ -64,7 +64,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    // Ensure endpoint starts with / and doesn't duplicate /api
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const url = API_BASE_URL.endsWith('/api') ? `${API_BASE_URL}${cleanEndpoint}` : `${API_BASE_URL}${cleanEndpoint}`;
+
+    const response = await fetch(url, {
       ...options,
       headers,
     });
@@ -88,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       try {
-        const response = await apiCall('/api/auth/me');
+        const response = await apiCall('/auth/me');
         if (response.ok) {
           const data = await response.json();
           setUser(data.user);
@@ -108,11 +112,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      const response = await apiCall('/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ username, password }),
       });
 
@@ -134,11 +135,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (username: string, email: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      const response = await apiCall('/auth/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ username, email, password }),
       });
 
@@ -160,7 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      await apiCall('/api/auth/logout', { method: 'POST' });
+      await apiCall('/auth/logout', { method: 'POST' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -175,7 +173,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const updatePreferences = async (preferences: any): Promise<boolean> => {
     try {
-      const response = await apiCall('/api/auth/preferences', {
+      const response = await apiCall('/auth/preferences', {
         method: 'PUT',
         body: JSON.stringify({ preferences }),
       });
