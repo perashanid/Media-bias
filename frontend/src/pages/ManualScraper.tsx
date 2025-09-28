@@ -35,11 +35,27 @@ interface ScrapingResult {
   source?: string;
   articles_count?: number;
   analyzed_count?: number;
+  summary?: {
+    source: string;
+    articles_scraped: number;
+    articles_stored: number;
+    articles_analyzed: number;
+    success_rate: number;
+    error_count: number;
+  };
+  articles?: Array<{
+    id: string;
+    title: string;
+    url: string;
+    language: string;
+    bias_analyzed: boolean;
+  }>;
   source_results?: {
     [source: string]: {
       scraped: number;
       stored: number;
       analyzed: number;
+      success_rate?: number;
     };
   };
   article?: {
@@ -55,6 +71,14 @@ interface ScrapingResult {
     factual_vs_opinion: number;
     overall_bias_score: number;
   };
+  scraper_health?: {
+    is_healthy: boolean;
+    total_articles_scraped: number;
+    average_response_time: number;
+    last_successful_scrape: string;
+  };
+  warnings?: string[];
+  total_errors?: number;
   error?: string;
 }
 
@@ -119,21 +143,31 @@ const ManualScraper: React.FC = () => {
     setResult(null);
 
     try {
-      const requestData: any = { source: selectedSource };
+      const requestData: any = { 
+        source: selectedSource,
+        max_articles: comprehensiveMode ? maxArticles : 10,
+        analyze_bias: true
+      };
       
       if (comprehensiveMode) {
         requestData.comprehensive = true;
-        requestData.max_articles = maxArticles;
         requestData.max_depth = maxDepth;
       }
       
+      console.log('Starting scrape with data:', requestData);
       const data = await scrapingApi.manualScrape(requestData);
+      console.log('Scrape response:', data);
+      
       setResult(data);
       if (data.success) {
         triggerRefresh(); // Refresh dashboard after successful scraping
+      } else {
+        setError(data.error || 'Scraping failed for unknown reason');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to scrape source');
+      console.error('Scraping error:', err);
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to scrape source';
+      setError(`Scraping failed: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -360,6 +394,24 @@ const ManualScraper: React.FC = () => {
         </Alert>
       )}
 
+      {/* Loading Display */}
+      {loading && (
+        <Paper sx={{ p: 3, mt: 3, textAlign: 'center' }}>
+          <CircularProgress sx={{ mb: 2 }} />
+          <Typography variant="body1" gutterBottom>
+            Scraping in progress... This may take up to 2 minutes.
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Please wait while we fetch and analyze articles from the selected source.
+          </Typography>
+          {selectedSource && (
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Source: {selectedSource}
+            </Typography>
+          )}
+        </Paper>
+      )}
+
       {/* Scraping Result */}
       {result && (
         <Paper sx={{ p: 3, mt: 3 }}>
@@ -376,40 +428,165 @@ const ManualScraper: React.FC = () => {
             </Alert>
           )}
           
-          {result.success && result.title && (
+          {result.success && (
             <Box>
-              <Typography variant="subtitle1" gutterBottom>
-                <strong>Title:</strong> {result.title}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                <strong>Source:</strong> {result.source}
-              </Typography>
-              {result.article_id && (
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Article ID:</strong> {result.article_id}
-                </Typography>
+              {/* Summary Information */}
+              {result.summary && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Summary - {result.summary.source}
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Scraped:</strong> {result.summary.articles_scraped}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Stored:</strong> {result.summary.articles_stored}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Analyzed:</strong> {result.summary.articles_analyzed}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6} sm={3}>
+                        <Typography variant="body2" color="text.secondary">
+                          <strong>Success Rate:</strong> {result.summary.success_rate}%
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                    {result.summary.error_count > 0 && (
+                      <Typography variant="body2" color="warning.main" sx={{ mt: 1 }}>
+                        <strong>Errors:</strong> {result.summary.error_count}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-              {result.articles_count && (
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Articles Scraped:</strong> {result.articles_count}
-                </Typography>
+
+              {/* Individual Articles */}
+              {result.articles && result.articles.length > 0 && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Articles ({result.articles.length})
+                    </Typography>
+                    {result.articles.slice(0, 5).map((article, index) => (
+                      <Box key={article.id} sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          {index + 1}. {article.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                          <Chip label={article.language} size="small" />
+                          <Chip 
+                            label={article.bias_analyzed ? 'Analyzed' : 'Not Analyzed'} 
+                            size="small" 
+                            color={article.bias_analyzed ? 'success' : 'default'}
+                          />
+                        </Box>
+                        <Typography variant="caption" color="text.secondary">
+                          ID: {article.id}
+                        </Typography>
+                      </Box>
+                    ))}
+                    {result.articles.length > 5 && (
+                      <Typography variant="body2" color="text.secondary">
+                        ... and {result.articles.length - 5} more articles
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-              {result.analyzed_count && (
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Articles Analyzed:</strong> {result.analyzed_count}
-                </Typography>
+
+              {/* Single Article (for URL scraping) */}
+              {result.title && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      {result.title}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                      <Chip label={result.source} size="small" />
+                    </Box>
+                    {result.article_id && (
+                      <Typography variant="caption" color="text.secondary">
+                        Article ID: {result.article_id}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
               )}
+
+              {/* Batch Results */}
               {result.source_results && (
-                <Box sx={{ mt: 2 }}>
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Source Results
+                    </Typography>
+                    {Object.entries(result.source_results).map(([source, stats]: [string, any]) => (
+                      <Box key={source} sx={{ mb: 1, p: 1, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="subtitle2">{source}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {stats.scraped} scraped, {stats.stored} stored, {stats.analyzed} analyzed
+                          {stats.success_rate && ` (${stats.success_rate}% success)`}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Scraper Health */}
+              {result.scraper_health && (
+                <Card sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Scraper Health
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                      <Chip 
+                        label={result.scraper_health.is_healthy ? 'Healthy' : 'Unhealthy'} 
+                        color={result.scraper_health.is_healthy ? 'success' : 'error'}
+                        size="small"
+                      />
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      Total articles scraped: {result.scraper_health.total_articles_scraped}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Average response time: {result.scraper_health.average_response_time.toFixed(2)}s
+                    </Typography>
+                    {result.scraper_health.last_successful_scrape && (
+                      <Typography variant="body2" color="text.secondary">
+                        Last successful scrape: {new Date(result.scraper_health.last_successful_scrape).toLocaleString()}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Warnings */}
+              {result.warnings && result.warnings.length > 0 && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>
-                    <strong>Source Results:</strong>
+                    Warnings ({result.warnings.length}):
                   </Typography>
-                  {Object.entries(result.source_results).map(([source, stats]: [string, any]) => (
-                    <Typography key={source} variant="body2" color="text.secondary">
-                      {source}: {stats.scraped} scraped, {stats.stored} stored, {stats.analyzed} analyzed
+                  {result.warnings.map((warning, index) => (
+                    <Typography key={index} variant="body2">
+                      • {warning}
                     </Typography>
                   ))}
-                </Box>
+                  {result.total_errors && result.total_errors > result.warnings.length && (
+                    <Typography variant="body2" sx={{ mt: 1 }}>
+                      ... and {result.total_errors - result.warnings.length} more errors
+                    </Typography>
+                  )}
+                </Alert>
               )}
             </Box>
           )}

@@ -98,7 +98,7 @@ class DailyStarScraper(BaseScraper):
             '/star-multimedia/'
         ]
         
-        # Exclude non-article URLs
+        # Exclude non-article URLs and category pages
         exclude_patterns = [
             '/live-news/',
             '/video/',
@@ -115,22 +115,45 @@ class DailyStarScraper(BaseScraper):
             '/archive'
         ]
         
+        # Exclude category pages (URLs that end with category names)
+        category_endings = [
+            '/bangladesh',
+            '/world',
+            '/business',
+            '/sports',
+            '/lifestyle',
+            '/opinion',
+            '/editorial',
+            '/city',
+            '/health',
+            '/star-youth',
+            '/showbiz',
+            '/slow-reads',
+            '/star-multimedia',
+            '/investigative-stories',
+            '/asia',
+            '/europe',
+            '/americas',
+            '/africa',
+            '/middle-east'
+        ]
+        
         # Check if URL contains article patterns and doesn't contain exclude patterns
         has_article_pattern = any(pattern in url for pattern in article_patterns)
         has_exclude_pattern = any(pattern in url for pattern in exclude_patterns)
         
-        # Additional validation - URL should be deep enough to be an article (more than just category)
-        is_deep_url = len(url.split('/')) >= 5  # Changed from 4 to 5 to avoid category pages
+        # Check if URL ends with a category (indicating it's a category page, not an article)
+        is_category_page = any(url.rstrip('/').endswith(ending) for ending in category_endings)
         
-        # Also check if URL has article-like structure (contains year or article ID)
+        # Additional validation - URL should have article-like structure
         import re
         has_article_structure = (
             re.search(r'/\d{4}/', url) or  # Contains year
-            re.search(r'-\d{6,}', url) or  # Contains article ID
-            len(url.split('/')) >= 6  # Very deep URL likely to be article
+            re.search(r'-\d{6,}', url) or  # Contains article ID (6+ digits)
+            len(url.split('/')) >= 7  # Deep URL likely to be article (increased from 6)
         )
         
-        return has_article_pattern and not has_exclude_pattern and (is_deep_url or has_article_structure)
+        return has_article_pattern and not has_exclude_pattern and not is_category_page and has_article_structure
     
     def _extract_article_content(self, soup: BeautifulSoup, url: str) -> Optional[Article]:
         """Extract article content from The Daily Star page"""

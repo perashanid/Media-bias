@@ -166,25 +166,27 @@ export const statisticsApi = {
 
 
 
-// Scraping API
+// Scraping API with extended timeouts
 export const scrapingApi = {
   getAvailableSources: async () => {
     const response = await api.get('/scrape/sources');
     return response.data;
   },
 
-  manualScrape: async (params: { url?: string; source?: string }) => {
-    const response = await api.post('/scrape/manual', params);
+  manualScrape: async (params: { url?: string; source?: string; comprehensive?: boolean; max_articles?: number; max_depth?: number }) => {
+    // Use extended timeout for scraping operations (2 minutes)
+    const response = await api.post('/scrape/manual', params, { timeout: 120000 });
     return response.data;
   },
 
   testUrl: async (url: string) => {
-    const response = await api.post('/scrape/test-url', { url });
+    const response = await api.post('/scrape/test-url', { url }, { timeout: 60000 });
     return response.data;
   },
 
   batchScrape: async (params: { max_articles_per_source?: number }) => {
-    const response = await api.post('/scrape/batch', params);
+    // Extended timeout for batch operations (5 minutes)
+    const response = await api.post('/scrape/batch', params, { timeout: 300000 });
     return response.data;
   },
 
@@ -193,7 +195,28 @@ export const scrapingApi = {
     max_articles?: number; 
     max_depth?: number; 
   }) => {
-    const response = await api.post('/scrape/comprehensive', params);
+    // Extended timeout for comprehensive scraping (5 minutes)
+    const response = await api.post('/scrape/comprehensive', params, { timeout: 300000 });
+    return response.data;
+  },
+
+  getScraperHealth: async () => {
+    const response = await api.get('/scrape/health');
+    return response.data;
+  },
+
+  getScrapingStatistics: async () => {
+    const response = await api.get('/scrape/statistics');
+    return response.data;
+  },
+
+  validateSource: async (source: string) => {
+    const response = await api.post('/scrape/validate-source', { source });
+    return response.data;
+  },
+
+  resetScraperHealth: async (source?: string) => {
+    const response = await api.post('/scrape/health/reset', source ? { source } : {});
     return response.data;
   },
 };
