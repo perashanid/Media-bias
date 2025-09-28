@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import {
   Email,
-  Phone,
   LocationOn,
   Send,
   GitHub,

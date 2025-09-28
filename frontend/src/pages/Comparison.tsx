@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Alert,
   Paper,
-  Divider,
   Table,
   TableBody,
   TableCell,
@@ -22,10 +21,10 @@ import {
 } from '@mui/material';
 import { useSearchParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { articlesApi, comparisonApi } from '../services/api';
+import { articlesApi } from '../services/api';
 import { Article } from '../types/Article';
 import BiasScoreCard from '../components/BiasScoreCard';
-import { ArrowBack, Analytics, Visibility } from '@mui/icons-material';
+import { ArrowBack, Visibility } from '@mui/icons-material';
 
 interface ComparisonData {
   articles: Article[];
@@ -44,6 +43,41 @@ const Comparison: React.FC = () => {
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const calculateBiasComparison = useCallback((articles: Article[]) => {
+    const biasScores = articles
+      .map(article => article.bias_scores?.overall_bias_score)
+      .filter(score => score !== undefined) as number[];
+
+    if (biasScores.length === 0) {
+      return {
+        average_bias: 0,
+        bias_variance: 0,
+        sentiment_variance: 0,
+        coverage_similarity: 0
+      };
+    }
+
+    const average_bias = biasScores.reduce((sum, score) => sum + score, 0) / biasScores.length;
+    const bias_variance = biasScores.reduce((sum, score) => sum + Math.pow(score - average_bias, 2), 0) / biasScores.length;
+
+    const sentimentScores = articles
+      .map(article => article.bias_scores?.sentiment_score)
+      .filter(score => score !== undefined) as number[];
+    
+    const avgSentiment = sentimentScores.reduce((sum, score) => sum + score, 0) / sentimentScores.length;
+    const sentiment_variance = sentimentScores.reduce((sum, score) => sum + Math.pow(score - avgSentiment, 2), 0) / sentimentScores.length;
+
+    // Simple coverage similarity based on title word overlap
+    const coverage_similarity = calculateCoverageSimilarity(articles);
+
+    return {
+      average_bias,
+      bias_variance,
+      sentiment_variance,
+      coverage_similarity
+    };
+  }, []);
 
   useEffect(() => {
     const fetchComparisonData = async () => {
@@ -81,42 +115,9 @@ const Comparison: React.FC = () => {
     };
 
     fetchComparisonData();
-  }, [searchParams]);
+  }, [searchParams, calculateBiasComparison]);
 
-  const calculateBiasComparison = (articles: Article[]) => {
-    const biasScores = articles
-      .map(article => article.bias_scores?.overall_bias_score)
-      .filter(score => score !== undefined) as number[];
 
-    if (biasScores.length === 0) {
-      return {
-        average_bias: 0,
-        bias_variance: 0,
-        sentiment_variance: 0,
-        coverage_similarity: 0
-      };
-    }
-
-    const average_bias = biasScores.reduce((sum, score) => sum + score, 0) / biasScores.length;
-    const bias_variance = biasScores.reduce((sum, score) => sum + Math.pow(score - average_bias, 2), 0) / biasScores.length;
-
-    const sentimentScores = articles
-      .map(article => article.bias_scores?.sentiment_score)
-      .filter(score => score !== undefined) as number[];
-    
-    const avgSentiment = sentimentScores.reduce((sum, score) => sum + score, 0) / sentimentScores.length;
-    const sentiment_variance = sentimentScores.reduce((sum, score) => sum + Math.pow(score - avgSentiment, 2), 0) / sentimentScores.length;
-
-    // Simple coverage similarity based on title word overlap
-    const coverage_similarity = calculateCoverageSimilarity(articles);
-
-    return {
-      average_bias,
-      bias_variance,
-      sentiment_variance,
-      coverage_similarity
-    };
-  };
 
   const calculateCoverageSimilarity = (articles: Article[]): number => {
     if (articles.length < 2) return 0;
