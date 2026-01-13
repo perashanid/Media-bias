@@ -195,14 +195,46 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="100vh"
+        sx={{
+          background: 'var(--color-background)',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress 
+            size={60} 
+            sx={{ 
+              color: 'var(--color-primary-500)',
+              mb: 3,
+            }} 
+          />
+          <Typography variant="h6" sx={{ color: 'var(--color-text-secondary)' }}>
+            Loading dashboard...
+          </Typography>
+        </Box>
       </Box>
     );
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <Box sx={{ pt: 16, px: 4 }}>
+        <Alert 
+          severity="error"
+          sx={{ 
+            borderRadius: 'var(--radius-xl)',
+            maxWidth: 600,
+            mx: 'auto',
+          }}
+        >
+          {error}
+        </Alert>
+      </Box>
+    );
   }
 
   // Prepare data for charts
@@ -220,42 +252,132 @@ const Dashboard: React.FC = () => {
       }))
     : [];
 
-  const COLORS = ['#0D1B2A', '#1B263B', '#415A77', '#778DA9', '#E0E1DD'];
+  const COLORS = ['#6366f1', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'];
 
   return (
-    <Container maxWidth="lg">
-      {/* Dashboard Header */}
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: { xs: 'flex-start', md: 'center' },
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: { xs: 3, md: 0 },
-        mb: 4 
-      }}>
-        <Box>
-          <Typography variant="h2" component="h1" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-            Dashboard
-          </Typography>
-          <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400 }}>
-            {isAuthenticated ? `Welcome back, ${user?.username}!` : 'Real-time analytics and statistics'}
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-          <Typography variant="body2" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' } }}>
-            Last updated: {lastRefresh.toLocaleTimeString()}
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Refresh />}
-            onClick={handleRefresh}
-            disabled={loading}
-            sx={{ borderRadius: 2 }}
-          >
-            Refresh
-          </Button>
-        </Box>
+    <Box sx={{ minHeight: '100vh', pt: 12, pb: 8 }}>
+      {/* Hero Section */}
+      <Box
+        sx={{
+          background: '#0f172a',
+          py: { xs: 6, md: 8 },
+          mb: 6,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Background decorations */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-30%',
+            right: '-10%',
+            width: 400,
+            height: 400,
+            borderRadius: '50%',
+            background: '#0891b2',
+            filter: 'blur(100px)',
+            opacity: 0.1,
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '-20%',
+            left: '5%',
+            width: 300,
+            height: 300,
+            borderRadius: '50%',
+            background: '#4f46e5',
+            filter: 'blur(100px)',
+            opacity: 0.1,
+          }}
+        />
+        
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: { xs: 'flex-start', md: 'center' },
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 3,
+          }}>
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 'var(--radius-lg)',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(10px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Assessment sx={{ color: '#fbbf24', fontSize: 28 }} />
+                </Box>
+                <Typography
+                  variant="h2"
+                  sx={{
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    fontSize: { xs: '2rem', md: '2.5rem' },
+                    letterSpacing: '-0.02em',
+                  }}
+                >
+                  Dashboard
+                </Typography>
+              </Box>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  fontWeight: 400,
+                }}
+              >
+                {isAuthenticated ? `Welcome back, ${user?.username}!` : 'Real-time analytics and insights'}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  display: { xs: 'none', sm: 'block' },
+                }}
+              >
+                Last updated: {lastRefresh.toLocaleTimeString()}
+              </Typography>
+              <Button
+                variant="contained"
+                startIcon={<Refresh />}
+                onClick={handleRefresh}
+                disabled={loading}
+                sx={{
+                  px: 3,
+                  py: 1.25,
+                  borderRadius: 'var(--radius-xl)',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  '&:hover': {
+                    background: 'rgba(255, 255, 255, 0.25)',
+                  },
+                }}
+              >
+                Refresh
+              </Button>
+            </Box>
+          </Box>
+        </Container>
       </Box>
+
+      <Container maxWidth="lg">
 
       {/* Tabs for Global/Personal Views */}
       {isAuthenticated && (
@@ -784,11 +906,8 @@ const Dashboard: React.FC = () => {
         )}
       </Grid>
       </TabPanel>
-
-
-
-
-    </Container>
+      </Container>
+    </Box>
   );
 };
 

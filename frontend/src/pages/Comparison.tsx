@@ -18,13 +18,23 @@ import {
   TableRow,
   LinearProgress,
   Button,
+  Avatar,
 } from '@mui/material';
 import { useSearchParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { articlesApi } from '../services/api';
 import { Article } from '../types/Article';
 import BiasScoreCard from '../components/BiasScoreCard';
-import { ArrowBack, Visibility } from '@mui/icons-material';
+import {
+  ArrowBack,
+  Visibility,
+  Compare,
+  TrendingUp,
+  Assessment,
+  Insights,
+  AutoAwesome,
+  Article as ArticleIcon,
+} from '@mui/icons-material';
 
 interface ComparisonData {
   articles: Article[];
@@ -185,10 +195,10 @@ const Comparison: React.FC = () => {
   };
 
   const getBiasLevelColor = (score?: number): string => {
-    if (!score) return '#778DA9';
-    if (score < 0.4) return '#1B263B';
-    if (score < 0.7) return '#415A77';
-    return '#0D1B2A';
+    if (!score) return 'var(--color-neutral-400)';
+    if (score < 0.4) return 'var(--color-success)';
+    if (score < 0.7) return 'var(--color-warning)';
+    return 'var(--color-error)';
   };
 
   const getBiasLevelLabel = (score?: number): string => {
@@ -200,275 +210,596 @@ const Comparison: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0f172a',
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress
+            size={60}
+            sx={{
+              color: 'var(--color-accent)',
+              mb: 3,
+            }}
+          />
+          <Typography
+            variant="h6"
+            sx={{
+              color: 'white',
+              fontWeight: 600,
+            }}
+          >
+            Loading comparison data...
+          </Typography>
         </Box>
-      </Container>
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-        <Button component={Link} to="/articles" startIcon={<ArrowBack />}>
-          Back to Articles
-        </Button>
-      </Container>
+      <Box sx={{ py: 8 }}>
+        <Container maxWidth="md">
+          <Box
+            sx={{
+              textAlign: 'center',
+              p: 6,
+              borderRadius: 4,
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+            }}
+          >
+            <Typography variant="h5" sx={{ color: 'var(--color-error)', fontWeight: 700, mb: 2 }}>
+              {error}
+            </Typography>
+            <Button
+              component={Link}
+              to="/articles"
+              startIcon={<ArrowBack />}
+              variant="contained"
+              sx={{
+                mt: 2,
+                background: '#4f46e5',
+                borderRadius: 3,
+                px: 4,
+                py: 1.5,
+                '&:hover': { background: '#4338ca' },
+              }}
+            >
+              Back to Articles
+            </Button>
+          </Box>
+        </Container>
+      </Box>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Button component={Link} to="/articles" startIcon={<ArrowBack />} sx={{ mb: 2 }}>
-          Back to Articles
-        </Button>
-        <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 700, color: '#0D1B2A' }}>
-          Article Comparison
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Comparing {articles.length} articles for bias patterns and coverage differences
-        </Typography>
+    <Box sx={{ minHeight: '100vh', pb: 8 }}>
+      {/* ============ HERO SECTION ============ */}
+      <Box
+        sx={{
+          position: 'relative',
+          py: { xs: 10, md: 14 },
+          px: { xs: 2, md: 4 },
+          background: '#0f172a',
+          overflow: 'hidden',
+          mb: 6,
+        }}
+      >
+        {/* Background Shapes */}
+        <Box
+          sx={{
+            position: 'absolute',
+            width: { xs: 200, md: 400 },
+            height: { xs: 200, md: 400 },
+            borderRadius: '50%',
+            background: '#4f46e5',
+            filter: 'blur(100px)',
+            opacity: 0.15,
+            top: -100,
+            right: -100,
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            width: { xs: 150, md: 300 },
+            height: { xs: 150, md: 300 },
+            borderRadius: '50%',
+            background: '#0891b2',
+            filter: 'blur(100px)',
+            opacity: 0.1,
+            bottom: -50,
+            left: -50,
+          }}
+        />
+
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <Button
+            component={Link}
+            to="/articles"
+            startIcon={<ArrowBack />}
+            sx={{
+              mb: 4,
+              color: 'rgba(255, 255, 255, 0.8)',
+              '&:hover': {
+                color: 'white',
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            Back to Articles
+          </Button>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Avatar
+              sx={{
+                width: 64,
+                height: 64,
+                background: '#4f46e5',
+                boxShadow: '0 4px 16px rgba(79, 70, 229, 0.3)',
+              }}
+            >
+              <Compare sx={{ fontSize: 32 }} />
+            </Avatar>
+            <Box>
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 800,
+                  color: 'white',
+                  mb: 0.5,
+                }}
+              >
+                Article{' '}
+                <Box
+                  component="span"
+                  sx={{
+                    color: '#06b6d4',
+                  }}
+                >
+                  Comparison
+                </Box>
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  fontWeight: 400,
+                }}
+              >
+                Analyzing {articles.length} articles for bias patterns and coverage differences
+              </Typography>
+            </Box>
+          </Box>
+        </Container>
       </Box>
 
-      {/* Comparison Summary */}
-      {comparisonData && (
-        <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-            Comparison Summary
-          </Typography>
-          
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ color: '#1B263B', fontWeight: 700 }}>
-                  {(comparisonData.bias_comparison.average_bias * 100).toFixed(1)}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Average Bias Score
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ color: '#415A77', fontWeight: 700 }}>
-                  {(comparisonData.bias_comparison.bias_variance * 100).toFixed(1)}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Bias Variance
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" color="info.main" sx={{ fontWeight: 700 }}>
-                  {(comparisonData.bias_comparison.coverage_similarity * 100).toFixed(1)}%
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Coverage Similarity
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="h4" sx={{ color: '#1B263B', fontWeight: 700 }}>
-                  {articles.length}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Articles Compared
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-
-          {/* Insights */}
-          {comparisonData.insights.length > 0 && (
-            <Box>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
-                Key Insights
+      <Container maxWidth="lg">
+        {/* Comparison Summary */}
+        {comparisonData && (
+          <Box
+            sx={{
+              mb: 5,
+              p: 4,
+              borderRadius: 4,
+              background: 'rgba(255, 255, 255, 0.03)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+              <Avatar
+                sx={{
+                  width: 48,
+                  height: 48,
+                  background: '#0891b2',
+                }}
+              >
+                <Assessment />
+              </Avatar>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                Comparison Summary
               </Typography>
-              {comparisonData.insights.map((insight, index) => (
-                <Alert key={index} severity="info" sx={{ mb: 1 }}>
-                  {insight}
-                </Alert>
-              ))}
             </Box>
-          )}
-        </Paper>
-      )}
 
-      {/* Detailed Comparison Table */}
-      <Paper sx={{ mb: 4, borderRadius: 2 }}>
-        <Box sx={{ p: 3, pb: 0 }}>
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-            Detailed Analysis
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              {[
+                {
+                  value: `${(comparisonData.bias_comparison.average_bias * 100).toFixed(1)}%`,
+                  label: 'Average Bias Score',
+                  color: '#4f46e5',
+                  icon: <TrendingUp />,
+                },
+                {
+                  value: `${(comparisonData.bias_comparison.bias_variance * 100).toFixed(1)}%`,
+                  label: 'Bias Variance',
+                  color: '#0891b2',
+                  icon: <Assessment />,
+                },
+                {
+                  value: `${(comparisonData.bias_comparison.coverage_similarity * 100).toFixed(1)}%`,
+                  label: 'Coverage Similarity',
+                  color: '#059669',
+                  icon: <Compare />,
+                },
+                {
+                  value: articles.length,
+                  label: 'Articles Compared',
+                  color: '#d97706',
+                  icon: <ArticleIcon />,
+                },
+              ].map((stat, index) => (
+                <Grid item xs={6} md={3} key={index}>
+                  <Box
+                    sx={{
+                      p: 3,
+                      borderRadius: 3,
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      textAlign: 'center',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15)',
+                      },
+                    }}
+                  >
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        background: stat.color,
+                        mx: 'auto',
+                        mb: 2,
+                      }}
+                    >
+                      {stat.icon}
+                    </Avatar>
+                    <Typography
+                      variant="h4"
+                      sx={{
+                        fontWeight: 800,
+                        background: stat.color,
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        mb: 0.5,
+                      }}
+                    >
+                      {stat.value}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {stat.label}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Insights */}
+            {comparisonData.insights.length > 0 && (
+              <Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                  <Insights sx={{ color: 'var(--color-accent)' }} />
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Key Insights
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {comparisonData.insights.map((insight, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        background: 'rgba(8, 145, 178, 0.08)',
+                        border: '1px solid rgba(8, 145, 178, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                      }}
+                    >
+                      <AutoAwesome sx={{ color: 'var(--color-accent)', fontSize: 20 }} />
+                      <Typography variant="body2" sx={{ color: 'text.primary' }}>
+                        {insight}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Detailed Comparison Table */}
+        <Box
+          sx={{
+            mb: 5,
+            borderRadius: 4,
+            overflow: 'hidden',
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}
+        >
+          <Box sx={{ p: 3, borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              Detailed Analysis
+            </Typography>
+          </Box>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ background: 'rgba(99, 102, 241, 0.1)' }}>
+                  <TableCell sx={{ fontWeight: 700, color: 'var(--color-primary-400)' }}>Article</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: 'var(--color-primary-400)' }}>Source</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: 'var(--color-primary-400)' }}>Language</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: 'var(--color-primary-400)' }}>Bias Level</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: 'var(--color-primary-400)' }}>Sentiment</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: 'var(--color-primary-400)' }}>Published</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {articles.map((article, index) => (
+                  <TableRow
+                    key={article.id}
+                    sx={{
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        background: 'rgba(99, 102, 241, 0.05)',
+                      },
+                      borderBottom: index === articles.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
+                    }}
+                  >
+                    <TableCell>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                        {article.title}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {article.content}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={article.source}
+                        size="small"
+                        sx={{
+                          background: '#4f46e5',
+                          color: 'white',
+                          fontWeight: 600,
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={article.language}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          borderColor: 'var(--color-accent)',
+                          color: 'var(--color-accent)',
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Box>
+                        <Chip
+                          label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
+                          size="small"
+                          sx={{
+                            bgcolor: getBiasLevelColor(article.bias_scores?.overall_bias_score),
+                            color: 'white',
+                            fontWeight: 600,
+                          }}
+                        />
+                        {article.bias_scores?.overall_bias_score && (
+                          <LinearProgress
+                            variant="determinate"
+                            value={article.bias_scores.overall_bias_score * 100}
+                            sx={{
+                              mt: 1,
+                              height: 6,
+                              borderRadius: 3,
+                              bgcolor: 'rgba(255, 255, 255, 0.1)',
+                              '& .MuiLinearProgress-bar': {
+                                background: '#4f46e5',
+                                borderRadius: 3,
+                              },
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                      {article.bias_scores?.sentiment_score !== undefined && (
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 600, color: 'var(--color-accent)' }}>
+                            {(article.bias_scores.sentiment_score * 100).toFixed(1)}%
+                          </Typography>
+                          <LinearProgress
+                            variant="determinate"
+                            value={article.bias_scores.sentiment_score * 100}
+                            sx={{
+                              mt: 1,
+                              height: 6,
+                              borderRadius: 3,
+                              bgcolor: 'rgba(255, 255, 255, 0.1)',
+                              '& .MuiLinearProgress-bar': {
+                                background: '#0891b2',
+                                borderRadius: 3,
+                              },
+                            }}
+                          />
+                        </Box>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {format(new Date(article.publication_date), 'MMM dd, yyyy')}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        {/* Individual Article Cards */}
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
+            Individual Articles
           </Typography>
         </Box>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Article</TableCell>
-                <TableCell>Source</TableCell>
-                <TableCell>Language</TableCell>
-                <TableCell>Bias Level</TableCell>
-                <TableCell>Sentiment</TableCell>
-                <TableCell>Published</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {articles.map((article) => (
-                <TableRow key={article.id}>
-                  <TableCell>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                      {article.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{
+        <Grid container spacing={4}>
+          {articles.map((article, index) => (
+            <Grid item xs={12} md={6} key={article.id}>
+              <Card
+                className="card-modern"
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: 4,
+                  transition: 'all 0.3s ease',
+                  animation: `fadeInUp 0.6s ease ${index * 0.1}s backwards`,
+                  '&:hover': {
+                    transform: 'translateY(-8px)',
+                    boxShadow: '0 20px 60px rgba(99, 102, 241, 0.2)',
+                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                  },
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                  <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    <Chip
+                      label={article.source}
+                      size="small"
+                      sx={{
+                        background: '#4f46e5',
+                        color: 'white',
+                        fontWeight: 600,
+                      }}
+                    />
+                    <Chip
+                      label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
+                      size="small"
+                      sx={{
+                        bgcolor: getBiasLevelColor(article.bias_scores?.overall_bias_score),
+                        color: 'white',
+                        fontWeight: 600,
+                      }}
+                    />
+                    <Chip
+                      label={article.language}
+                      size="small"
+                      variant="outlined"
+                      sx={{
+                        borderColor: 'var(--color-accent)',
+                        color: 'var(--color-accent)',
+                      }}
+                    />
+                  </Box>
+
+                  <Typography
+                    variant="h6"
+                    sx={{
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
-                    }}>
-                      {article.content}
-                    </Typography>
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={article.source} size="small" sx={{ bgcolor: '#1B263B', color: '#E0E1DD' }} />
-                  </TableCell>
-                  <TableCell>
-                    <Chip label={article.language} size="small" variant="outlined" />
-                  </TableCell>
-                  <TableCell>
-                    <Box>
-                      <Chip
-                        label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
-                        size="small"
-                        sx={{
-                          bgcolor: getBiasLevelColor(article.bias_scores?.overall_bias_score),
-                          color: '#E0E1DD'
-                        }}
-                      />
-                      {article.bias_scores?.overall_bias_score && (
-                        <LinearProgress
-                          variant="determinate"
-                          value={article.bias_scores.overall_bias_score * 100}
-                          sx={{ mt: 1, height: 4, borderRadius: 2 }}
-                        />
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    {article.bias_scores?.sentiment_score && (
-                      <Box>
-                        <Typography variant="body2">
-                          {(article.bias_scores.sentiment_score * 100).toFixed(1)}%
-                        </Typography>
-                        <LinearProgress
-                          variant="determinate"
-                          value={article.bias_scores.sentiment_score * 100}
-                          sx={{ bgcolor: '#415A77', mt: 1, height: 4, borderRadius: 2 }}
-                        />
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
+                      fontWeight: 700,
+                      lineHeight: 1.4,
+                      mb: 2,
+                    }}
+                  >
+                    {article.title}
+                  </Typography>
+
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      mb: 3,
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    {article.content}
+                  </Typography>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
                       {format(new Date(article.publication_date), 'MMM dd, yyyy')}
                     </Typography>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
-
-      {/* Individual Article Cards */}
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
-        Individual Articles
-      </Typography>
-      <Grid container spacing={4}>
-        {articles.map((article) => (
-          <Grid item xs={12} md={6} key={article.id}>
-            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                <Box sx={{ mb: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  <Chip label={article.source} size="small" sx={{ bgcolor: '#1B263B', color: '#E0E1DD' }} />
-                  <Chip
-                    label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
-                    size="small"
-                    sx={{
-                      bgcolor: getBiasLevelColor(article.bias_scores?.overall_bias_score),
-                      color: '#E0E1DD'
-                    }}
-                  />
-                  <Chip label={article.language} size="small" variant="outlined" />
-                </Box>
-
-                <Typography variant="h6" gutterBottom sx={{ 
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                  mb: 2,
-                }}>
-                  {article.title}
-                </Typography>
-
-                <Typography variant="body2" color="text.secondary" sx={{
-                  display: '-webkit-box',
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: 'vertical',
-                  overflow: 'hidden',
-                  mb: 3,
-                  lineHeight: 1.6,
-                }}>
-                  {article.content}
-                </Typography>
-
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                    {format(new Date(article.publication_date), 'MMM dd, yyyy')}
-                  </Typography>
-                  {article.author && (
-                    <Typography variant="body2" color="text.secondary">
-                      By {article.author}
-                    </Typography>
-                  )}
-                </Box>
-
-                {/* Bias Score Preview */}
-                {article.bias_scores && (
-                  <Box sx={{ mb: 2 }}>
-                    <BiasScoreCard biasScore={article.bias_scores} showDetails={false} />
+                    {article.author && (
+                      <Typography variant="body2" color="text.secondary">
+                        By {article.author}
+                      </Typography>
+                    )}
                   </Box>
-                )}
-              </CardContent>
 
-              <Box sx={{ p: 3, pt: 0 }}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  component={Link}
-                  to={`/articles/${article.id}`}
-                  startIcon={<Visibility />}
-                  sx={{ borderRadius: 2 }}
-                >
-                  View Full Article
-                </Button>
-              </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
+                  {/* Bias Score Preview */}
+                  {article.bias_scores && (
+                    <Box sx={{ mb: 2 }}>
+                      <BiasScoreCard biasScore={article.bias_scores} showDetails={false} />
+                    </Box>
+                  )}
+                </CardContent>
+
+                <Box sx={{ p: 3, pt: 0 }}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    component={Link}
+                    to={`/articles/${article.id}`}
+                    startIcon={<Visibility />}
+                    sx={{
+                      background: '#4f46e5',
+                      borderRadius: 3,
+                      py: 1.5,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      '&:hover': {
+                        background: '#4338ca',
+                        transform: 'scale(1.02)',
+                        boxShadow: '0 4px 16px rgba(79, 70, 229, 0.3)',
+                      },
+                    }}
+                  >
+                    View Full Article
+                  </Button>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Box>
   );
 };
 

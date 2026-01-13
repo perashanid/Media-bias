@@ -19,6 +19,8 @@ import {
   Badge,
   Divider,
   Paper,
+  Container,
+  Avatar,
 } from '@mui/material';
 import { 
   Search, 
@@ -28,7 +30,10 @@ import {
   FilterList,
   Clear,
   CheckBox,
-  CheckBoxOutlineBlank
+  CheckBoxOutlineBlank,
+  CalendarMonth,
+  TrendingUp,
+  AutoAwesome,
 } from '@mui/icons-material';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -295,32 +300,136 @@ const ArticleList: React.FC = () => {
 
 
   return (
-    <Box>
-      <Typography variant="h2" gutterBottom sx={{ fontWeight: 700, color: 'primary.main', mb: 3 }}>
-        News Articles
-      </Typography>
+    <Box sx={{ minHeight: '100vh', pt: 12, pb: 8 }}>
+      {/* Hero Section */}
+      <Box
+        sx={{
+          background: '#0f172a',
+          py: { xs: 6, md: 8 },
+          mb: 6,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Background decoration */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '-50%',
+            right: '-20%',
+            width: 400,
+            height: 400,
+            borderRadius: '50%',
+            background: '#4f46e5',
+            filter: 'blur(100px)',
+            opacity: 0.12,
+          }}
+        />
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 'var(--radius-lg)',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(10px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <AutoAwesome sx={{ color: '#fbbf24', fontSize: 28 }} />
+            </Box>
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: 800,
+                color: '#ffffff',
+                fontSize: { xs: '2rem', md: '2.5rem' },
+                letterSpacing: '-0.02em',
+              }}
+            >
+              News Articles
+            </Typography>
+          </Box>
+          <Typography
+            variant="h6"
+            sx={{
+              color: 'rgba(255, 255, 255, 0.8)',
+              fontWeight: 400,
+              maxWidth: 600,
+            }}
+          >
+            Explore and analyze articles from Bangladesh's leading news sources. 
+            Filter, search, and compare coverage across outlets.
+          </Typography>
 
-      {/* Enhanced Filters and Search */}
-      <Paper sx={{ p: 3, mb: 4, borderRadius: 2 }}>
+          {/* Quick Stats */}
+          <Box sx={{ display: 'flex', gap: 4, mt: 4, flexWrap: 'wrap' }}>
+            {[
+              { value: totalArticles, label: 'Total Articles' },
+              { value: availableSources.length, label: 'Sources' },
+              { value: selectedArticles.size, label: 'Selected' },
+            ].map((stat, index) => (
+              <Box key={index}>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 800, color: '#ffffff' }}
+                >
+                  {stat.value.toLocaleString()}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'rgba(255, 255, 255, 0.6)', textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                >
+                  {stat.label}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Container>
+      </Box>
+
+      <Container maxWidth="lg">
+        {/* Enhanced Filters and Search */}
+        <Paper
+          sx={{
+            p: 4,
+            mb: 4,
+            borderRadius: 'var(--radius-2xl)',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            boxShadow: 'var(--shadow-lg)',
+          }}
+        >
         {/* Search and Basic Filters */}
         <Grid container spacing={3} alignItems="center" sx={{ mb: 3 }}>
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
-              placeholder="Search articles..."
+              placeholder="Search articles by title or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Search />
+                    <Search sx={{ color: 'var(--color-text-muted)' }} />
                   </InputAdornment>
                 ),
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
+                  borderRadius: 'var(--radius-xl)',
+                  backgroundColor: 'var(--color-background)',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: 'var(--color-primary-300)',
+                  },
+                  '&.Mui-focused': {
+                    boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.15)',
+                  },
                 }
               }}
             />
@@ -334,7 +443,8 @@ const ArticleList: React.FC = () => {
               onChange={(e) => setSourceFilter(e.target.value)}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
+                  borderRadius: 'var(--radius-xl)',
+                  backgroundColor: 'var(--color-background)',
                 }
               }}
             >
@@ -353,11 +463,19 @@ const ArticleList: React.FC = () => {
               onClick={() => setShowFilters(!showFilters)}
               startIcon={<FilterList />}
               sx={{ 
-                py: 1.5,
-                borderRadius: 2,
+                py: 1.75,
+                borderRadius: 'var(--radius-xl)',
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-secondary)',
+                fontWeight: 600,
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: 'var(--color-primary-500)',
+                  backgroundColor: 'var(--color-primary-50)',
+                },
               }}
             >
-              More Filters
+              {showFilters ? 'Hide' : 'More'} Filters
             </Button>
           </Grid>
           <Grid item xs={12} md={2}>
@@ -367,8 +485,17 @@ const ArticleList: React.FC = () => {
               onClick={handleSearch}
               startIcon={<Search />}
               sx={{ 
-                py: 1.5,
-                borderRadius: 2,
+                py: 1.75,
+                borderRadius: 'var(--radius-xl)',
+                background: '#4f46e5',
+                fontWeight: 600,
+                textTransform: 'none',
+                boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                '&:hover': {
+                  background: '#4338ca',
+                  boxShadow: '0 4px 12px rgba(79, 70, 229, 0.35)',
+                  transform: 'translateY(-1px)',
+                },
               }}
             >
               Search
@@ -377,12 +504,19 @@ const ArticleList: React.FC = () => {
           <Grid item xs={12} md={2}>
             <Button
               fullWidth
-              variant="outlined"
+              variant="text"
               onClick={clearAllFilters}
               startIcon={<Clear />}
               sx={{ 
-                py: 1.5,
-                borderRadius: 2,
+                py: 1.75,
+                borderRadius: 'var(--radius-xl)',
+                color: 'var(--color-text-muted)',
+                fontWeight: 500,
+                textTransform: 'none',
+                '&:hover': {
+                  color: 'var(--color-error)',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                },
               }}
             >
               Clear All
@@ -528,92 +662,159 @@ const ArticleList: React.FC = () => {
       {/* Articles Grid */}
       {!loading && !error && (
         <>
-          <Grid container spacing={4}>
-            {articles.map((article) => (
+          <Grid container spacing={3}>
+            {articles.map((article, index) => (
               <Grid item xs={12} md={6} lg={4} key={article.id}>
-                <Card sx={{ 
-                  height: '100%', 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  transition: 'all 0.3s ease',
-                  border: selectedArticles.has(article.id) ? '2px solid' : '1px solid',
-                  borderColor: selectedArticles.has(article.id) ? 'primary.main' : 'grey.200',
-                  bgcolor: selectedArticles.has(article.id) ? 'action.selected' : 'background.paper',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)',
-                  }
-                }}>
+                <Card 
+                  className="card-modern"
+                  sx={{ 
+                    height: '100%', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    border: selectedArticles.has(article.id) ? '2px solid var(--color-primary-500)' : '1px solid var(--color-border)',
+                    bgcolor: selectedArticles.has(article.id) ? 'var(--color-primary-50)' : 'var(--color-surface)',
+                    borderRadius: 'var(--radius-2xl)',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    animation: `fadeInUp 0.5s ease ${index * 0.05}s both`,
+                    '&:hover': {
+                      transform: 'translateY(-8px)',
+                      boxShadow: 'var(--shadow-xl)',
+                    },
+                    '&:hover .card-gradient-bar': {
+                      transform: 'scaleX(1)',
+                    },
+                  }}
+                >
+                  {/* Gradient top bar */}
+                  <Box
+                    className="card-gradient-bar"
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 4,
+                      background: article.bias_scores?.overall_bias_score 
+                        ? article.bias_scores.overall_bias_score < 0.4 
+                          ? '#10b981'
+                          : article.bias_scores.overall_bias_score < 0.7
+                            ? '#f59e0b'
+                            : '#ef4444'
+                        : '#4f46e5',
+                      transform: 'scaleX(0)',
+                      transformOrigin: 'left',
+                      transition: 'transform 0.4s ease',
+                    }}
+                  />
+
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                    <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {/* Header with chips and checkbox */}
+                    <Box sx={{ mb: 3, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                         <Chip
+                          avatar={
+                            <Avatar sx={{ bgcolor: 'var(--color-primary-500) !important', width: 24, height: 24, fontSize: '0.7rem' }}>
+                              {article.source?.substring(0, 2).toUpperCase()}
+                            </Avatar>
+                          }
                           label={article.source}
                           size="small"
-                          color="primary"
-                          sx={{ fontWeight: 500 }}
+                          sx={{ 
+                            fontWeight: 600,
+                            borderRadius: 'var(--radius-lg)',
+                            bgcolor: 'var(--color-primary-50)',
+                            color: 'var(--color-primary-700)',
+                          }}
                         />
                         <Chip
+                          icon={<TrendingUp sx={{ fontSize: 14 }} />}
                           label={getBiasLevelLabel(article.bias_scores?.overall_bias_score)}
                           size="small"
-                          color={getBiasLevelColor(article.bias_scores?.overall_bias_score)}
-                          sx={{ fontWeight: 500 }}
+                          sx={{
+                            fontWeight: 600,
+                            borderRadius: 'var(--radius-lg)',
+                            bgcolor: article.bias_scores?.overall_bias_score
+                              ? article.bias_scores.overall_bias_score < 0.4
+                                ? 'rgba(16, 185, 129, 0.1)'
+                                : article.bias_scores.overall_bias_score < 0.7
+                                  ? 'rgba(245, 158, 11, 0.1)'
+                                  : 'rgba(239, 68, 68, 0.1)'
+                              : 'var(--color-surface-elevated)',
+                            color: article.bias_scores?.overall_bias_score
+                              ? article.bias_scores.overall_bias_score < 0.4
+                                ? 'var(--color-success)'
+                                : article.bias_scores.overall_bias_score < 0.7
+                                  ? 'var(--color-warning)'
+                                  : 'var(--color-error)'
+                              : 'var(--color-text-muted)',
+                          }}
                         />
-                        {article.topics && article.topics.length > 0 && (
-                          <Chip
-                            label={article.topics[0].charAt(0).toUpperCase() + article.topics[0].slice(1)}
-                            size="small"
-                            variant="outlined"
-                            color="info"
-                            sx={{ fontWeight: 500 }}
-                          />
-                        )}
                       </Box>
                       <Checkbox
                         checked={selectedArticles.has(article.id)}
                         onChange={() => handleSelectArticle(article.id)}
                         size="small"
-                        icon={<CheckBoxOutlineBlank />}
-                        checkedIcon={<CheckBox />}
+                        icon={<CheckBoxOutlineBlank sx={{ color: 'var(--color-border)' }} />}
+                        checkedIcon={<CheckBox sx={{ color: 'var(--color-primary-500)' }} />}
                         sx={{ p: 0.5 }}
                       />
                     </Box>
 
-                    <Typography variant="h6" gutterBottom sx={{ 
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      fontWeight: 600,
-                      lineHeight: 1.4,
-                      mb: 2,
-                    }}>
+                    {/* Title */}
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        fontWeight: 700,
+                        lineHeight: 1.4,
+                        mb: 2,
+                        fontSize: '1rem',
+                        color: 'var(--color-text)',
+                      }}
+                    >
                       {article.title}
                     </Typography>
 
-                    <Typography variant="body2" color="text.secondary" sx={{
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      mb: 3,
-                      lineHeight: 1.6,
-                    }}>
+                    {/* Content preview */}
+                    <Typography 
+                      variant="body2" 
+                      sx={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        mb: 3,
+                        lineHeight: 1.7,
+                        color: 'var(--color-text-secondary)',
+                      }}
+                    >
                       {article.content}
                     </Typography>
 
-                    <Box sx={{ mb: 3 }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                        {format(new Date(article.publication_date), 'MMM dd, yyyy')}
-                      </Typography>
-                      {article.author && (
-                        <Typography variant="body2" color="text.secondary">
-                          By {article.author}
+                    {/* Meta info */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CalendarMonth sx={{ fontSize: 16, color: 'var(--color-text-muted)' }} />
+                        <Typography variant="caption" sx={{ color: 'var(--color-text-muted)' }}>
+                          {format(new Date(article.publication_date), 'MMM dd, yyyy')}
                         </Typography>
-                      )}
-                      <Typography variant="body2" color="text.secondary">
-                        {article.language}
-                      </Typography>
+                      </Box>
+                      <Chip
+                        label={article.language}
+                        size="small"
+                        variant="outlined"
+                        sx={{ 
+                          borderRadius: 'var(--radius-md)',
+                          fontSize: '0.65rem',
+                          height: 20,
+                          borderColor: 'var(--color-border)',
+                          color: 'var(--color-text-muted)',
+                        }}
+                      />
                     </Box>
 
                     {/* Bias Score Preview */}
@@ -624,8 +825,9 @@ const ArticleList: React.FC = () => {
                     )}
                   </CardContent>
 
+                  {/* Actions */}
                   <Box sx={{ p: 3, pt: 0 }}>
-                    <Grid container spacing={1.5} alignItems="center">
+                    <Grid container spacing={1.5}>
                       <Grid item xs={6}>
                         <Button
                           fullWidth
@@ -634,7 +836,18 @@ const ArticleList: React.FC = () => {
                           component={Link}
                           to={`/articles/${article.id}`}
                           startIcon={<Visibility />}
-                          sx={{ borderRadius: 2 }}
+                          sx={{ 
+                            borderRadius: 'var(--radius-lg)',
+                            py: 1,
+                            background: '#4f46e5',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            boxShadow: 'none',
+                            '&:hover': {
+                              background: '#4338ca',
+                              boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
+                            },
+                          }}
                         >
                           View
                         </Button>
@@ -647,7 +860,19 @@ const ArticleList: React.FC = () => {
                           component={Link}
                           to={`/comparison?article=${article.id}`}
                           startIcon={<Analytics />}
-                          sx={{ borderRadius: 2 }}
+                          sx={{ 
+                            borderRadius: 'var(--radius-lg)',
+                            py: 1,
+                            borderColor: 'var(--color-border)',
+                            color: 'var(--color-text-secondary)',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            '&:hover': {
+                              borderColor: 'var(--color-primary-500)',
+                              color: 'var(--color-primary-600)',
+                              bgcolor: 'var(--color-primary-50)',
+                            },
+                          }}
                         >
                           Compare
                         </Button>
@@ -659,25 +884,24 @@ const ArticleList: React.FC = () => {
             ))}
           </Grid>
 
-          {/* Pagination - Always show for navigation */}
+          {/* Pagination */}
           {!loading && articles.length > 0 && (
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'center',
-              mt: 4, 
+              mt: 6, 
               mb: 4,
-              p: 3,
-              bgcolor: '#E0E1DD',
-              borderRadius: 2,
-              border: '1px solid #778DA9'
+              p: 4,
+              background: 'var(--color-surface)',
+              borderRadius: 'var(--radius-2xl)',
+              border: '1px solid var(--color-border)',
             }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-                <Typography variant="body2" sx={{ color: '#0D1B2A', fontWeight: 500 }}>
-                  Page {page} of {totalPages} ({totalArticles} total articles)
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <Typography variant="body2" sx={{ color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+                  Page {page} of {totalPages} • {totalArticles.toLocaleString()} total articles
                 </Typography>
                 
-                {/* Single pagination component - always show when articles exist */}
                 <Pagination
                   count={totalPages}
                   page={page}
@@ -686,47 +910,79 @@ const ArticleList: React.FC = () => {
                   showLastButton
                   sx={{
                     '& .MuiPaginationItem-root': {
-                      color: '#0D1B2A',
-                      borderColor: '#778DA9',
+                      color: 'var(--color-text)',
+                      borderRadius: 'var(--radius-lg)',
                       fontWeight: 500,
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        bgcolor: '#778DA9',
-                        color: '#E0E1DD'
+                        bgcolor: 'var(--color-primary-50)',
+                        color: 'var(--color-primary-600)',
+                        transform: 'translateY(-1px)',
                       },
                       '&.Mui-selected': {
-                        bgcolor: '#1B263B',
-                        color: '#E0E1DD',
+                        background: '#4f46e5',
+                        color: '#ffffff',
+                        boxShadow: '0 2px 8px rgba(79, 70, 229, 0.25)',
                         '&:hover': {
-                          bgcolor: '#415A77'
+                          background: '#4338ca',
+                          opacity: 0.9,
                         }
                       },
-                      '&.Mui-disabled': {
-                        color: '#778DA9',
-                        borderColor: '#778DA9',
-                        opacity: 0.5
-                      }
                     }
                   }}
                 />
-                
-                {totalPages === 1 && (
-                  <Typography variant="body2" sx={{ color: '#415A77', fontStyle: 'italic' }}>
-                    All articles shown
-                  </Typography>
-                )}
               </Box>
             </Box>
           )}
 
           {/* No Results */}
           {articles.length === 0 && !loading && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" color="text.secondary">
+            <Box 
+              sx={{ 
+                textAlign: 'center', 
+                py: 12,
+                px: 4,
+                background: 'var(--color-surface)',
+                borderRadius: 'var(--radius-2xl)',
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: '50%',
+                  background: 'var(--color-surface-elevated)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 3,
+                }}
+              >
+                <Search sx={{ fontSize: 40, color: 'var(--color-text-muted)' }} />
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'var(--color-text)' }}>
                 No articles found
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body1" sx={{ color: 'var(--color-text-secondary)', mb: 4 }}>
                 Try adjusting your search criteria or filters
               </Typography>
+              <Button
+                variant="contained"
+                onClick={clearAllFilters}
+                sx={{
+                  background: '#4f46e5',
+                  borderRadius: 'var(--radius-xl)',
+                  px: 4,
+                  py: 1.5,
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  '&:hover': { background: '#4338ca' },
+                }}
+              >
+                Clear All Filters
+              </Button>
             </Box>
           )}
         </>
@@ -735,21 +991,37 @@ const ArticleList: React.FC = () => {
       {/* Floating Action Button for Comparison */}
       {selectedArticles.size >= 2 && (
         <Fab
-          color="primary"
           sx={{
             position: 'fixed',
-            bottom: 24,
-            right: 24,
+            bottom: 32,
+            right: 32,
             zIndex: 1000,
+            background: '#4f46e5',
+            boxShadow: '0 4px 16px rgba(79, 70, 229, 0.35)',
+            '&:hover': {
+              background: '#4338ca',
+              transform: 'scale(1.05)',
+              boxShadow: '0 6px 20px rgba(79, 70, 229, 0.45)',
+            },
           }}
           onClick={handleCompareSelected}
           disabled={comparing}
         >
-          <Badge badgeContent={selectedArticles.size} color="secondary">
-            {comparing ? <CircularProgress size={24} color="inherit" /> : <Compare />}
+          <Badge 
+            badgeContent={selectedArticles.size} 
+            sx={{
+              '& .MuiBadge-badge': {
+                background: 'var(--color-accent-500)',
+                color: '#ffffff',
+                fontWeight: 700,
+              }
+            }}
+          >
+            {comparing ? <CircularProgress size={24} color="inherit" /> : <Compare sx={{ color: '#ffffff' }} />}
           </Badge>
         </Fab>
       )}
+      </Container>
     </Box>
   );
 };

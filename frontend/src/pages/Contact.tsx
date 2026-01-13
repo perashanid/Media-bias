@@ -94,19 +94,16 @@ const Contact: React.FC = () => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: { xs: 12, md: 14 }, pb: 4 }}>
       <Box sx={{ textAlign: 'center', mb: 6 }}>
         <Typography 
           variant="h2" 
           component="h1" 
           gutterBottom 
           sx={{
-            background: (theme) => theme.palette.mode === 'dark' 
-              ? 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)'
-              : 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: (theme) => theme.palette.mode === 'dark' 
+              ? '#a5b4fc'
+              : '#4f46e5',
           }}
         >
           Contact Us

@@ -225,7 +225,7 @@ const ComparisonView: React.FC = () => {
   const biasData = getBiasComparisonData();
 
   return (
-    <Box>
+    <Box sx={{ pt: { xs: 12, md: 14 }, px: { xs: 2, md: 4 }, pb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
           Article Comparison

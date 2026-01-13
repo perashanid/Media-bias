@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -15,15 +15,6 @@ export const useTheme = () => {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
-};
-
-// Color scheme from the provided image
-const colors = {
-  primary: '#0D1B2A',    // Darkest blue
-  secondary: '#1B263B',   // Dark blue
-  accent: '#415A77',      // Medium blue
-  light: '#778DA9',       // Light blue
-  lightest: '#E0E1DD',    // Light gray
 };
 
 interface CustomThemeProviderProps {
@@ -45,41 +36,45 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
     setDarkMode(!darkMode);
   };
 
-  const theme = createTheme({
+  const theme = useMemo(() => createTheme({
     palette: {
       mode: darkMode ? 'dark' : 'light',
       primary: {
-        main: colors.primary,
-        light: colors.secondary,
-        dark: '#0A1520',
+        main: '#6366f1',
+        light: '#818cf8',
+        dark: '#4f46e5',
         contrastText: '#ffffff',
       },
       secondary: {
-        main: colors.accent,
-        light: colors.light,
-        dark: colors.secondary,
+        main: '#06b6d4',
+        light: '#22d3ee',
+        dark: '#0891b2',
         contrastText: '#ffffff',
       },
       background: {
-        default: darkMode ? colors.primary : '#fafafa',
-        paper: darkMode ? colors.secondary : '#ffffff',
+        default: darkMode ? '#0f172a' : '#f8fafc',
+        paper: darkMode ? '#1e293b' : '#ffffff',
       },
       text: {
-        primary: darkMode ? colors.lightest : '#1a1a1a',
-        secondary: darkMode ? colors.light : '#4a5568',
+        primary: darkMode ? '#f8fafc' : '#0f172a',
+        secondary: darkMode ? '#94a3b8' : '#475569',
       },
-      grey: {
-        50: darkMode ? colors.secondary : '#f9fafb',
-        100: darkMode ? colors.accent : '#f3f4f6',
-        200: darkMode ? colors.light : '#e5e7eb',
-        300: darkMode ? colors.light : '#d1d5db',
-        400: darkMode ? colors.light : '#9ca3af',
-        500: darkMode ? colors.lightest : colors.light,
-        600: darkMode ? colors.lightest : colors.accent,
-        700: darkMode ? colors.lightest : colors.secondary,
-        800: darkMode ? colors.lightest : colors.primary,
-        900: darkMode ? '#ffffff' : colors.primary,
+      success: {
+        main: '#10b981',
+        light: '#34d399',
+        dark: '#059669',
       },
+      warning: {
+        main: '#f59e0b',
+        light: '#fbbf24',
+        dark: '#d97706',
+      },
+      error: {
+        main: '#ef4444',
+        light: '#f87171',
+        dark: '#dc2626',
+      },
+      divider: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)',
     },
     typography: {
       fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -88,49 +83,41 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
         fontWeight: 700,
         lineHeight: 1.2,
         letterSpacing: '-0.025em',
-        color: darkMode ? colors.lightest : '#1a1a1a',
       },
       h2: {
         fontSize: '2rem',
         fontWeight: 600,
         lineHeight: 1.3,
         letterSpacing: '-0.025em',
-        color: darkMode ? colors.lightest : '#1a1a1a',
       },
       h3: {
         fontSize: '1.5rem',
         fontWeight: 600,
         lineHeight: 1.4,
         letterSpacing: '-0.025em',
-        color: darkMode ? colors.lightest : '#1a1a1a',
       },
       h4: {
         fontSize: '1.25rem',
         fontWeight: 600,
         lineHeight: 1.4,
-        color: darkMode ? colors.lightest : '#1a1a1a',
       },
       h5: {
         fontSize: '1.125rem',
         fontWeight: 500,
         lineHeight: 1.5,
-        color: darkMode ? colors.lightest : '#1a1a1a',
       },
       h6: {
         fontSize: '1rem',
         fontWeight: 500,
         lineHeight: 1.5,
-        color: darkMode ? colors.lightest : '#1a1a1a',
       },
       body1: {
         fontSize: '1rem',
         lineHeight: 1.6,
-        color: darkMode ? colors.light : '#4a5568',
       },
       body2: {
         fontSize: '0.875rem',
         lineHeight: 1.5,
-        color: darkMode ? colors.light : '#4a5568',
       },
       button: {
         textTransform: 'none',
@@ -138,33 +125,43 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
       },
     },
     shape: {
-      borderRadius: 8,
+      borderRadius: 12,
     },
     components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            backgroundColor: darkMode ? '#0f172a' : '#f8fafc',
+            color: darkMode ? '#f8fafc' : '#0f172a',
+          },
+        },
+      },
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 8,
+            borderRadius: 10,
             textTransform: 'none',
-            fontWeight: 500,
+            fontWeight: 600,
             boxShadow: 'none',
+            transition: 'all 0.2s ease',
             '&:hover': {
-              boxShadow: darkMode 
-                ? '0 4px 12px rgba(224, 225, 221, 0.1)' 
-                : '0 4px 12px rgba(13, 27, 42, 0.1)',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
             },
           },
           contained: {
-            background: darkMode 
-              ? `linear-gradient(135deg, ${colors.accent} 0%, ${colors.light} 100%)`
-              : `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
+            background: '#4f46e5',
             '&:hover': {
-              background: darkMode 
-                ? `linear-gradient(135deg, ${colors.light} 0%, ${colors.lightest} 100%)`
-                : `linear-gradient(135deg, ${colors.secondary} 0%, ${colors.accent} 100%)`,
-              boxShadow: darkMode 
-                ? '0 4px 12px rgba(224, 225, 221, 0.15)' 
-                : '0 4px 12px rgba(13, 27, 42, 0.15)',
+              background: '#4338ca',
+            },
+          },
+          outlined: {
+            borderWidth: 2,
+            borderColor: darkMode ? 'rgba(99, 102, 241, 0.5)' : '#4f46e5',
+            color: darkMode ? '#a5b4fc' : '#4f46e5',
+            '&:hover': {
+              borderWidth: 2,
+              borderColor: '#4f46e5',
+              backgroundColor: darkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(79, 70, 229, 0.08)',
             },
           },
         },
@@ -172,16 +169,18 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
-            backgroundColor: darkMode ? colors.secondary : '#ffffff',
-            border: darkMode ? `1px solid ${colors.accent}` : '1px solid rgba(0, 0, 0, 0.05)',
+            borderRadius: 16,
+            backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+            border: darkMode ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid rgba(0, 0, 0, 0.06)',
             boxShadow: darkMode 
-              ? '0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2)'
-              : '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+              ? '0 4px 24px rgba(0, 0, 0, 0.2)'
+              : '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)',
+            transition: 'all 0.3s ease',
             '&:hover': {
               boxShadow: darkMode 
-                ? '0 4px 6px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3)'
-                : '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
+                ? '0 12px 40px rgba(0, 0, 0, 0.3)'
+                : '0 10px 40px rgba(0, 0, 0, 0.12)',
+              transform: 'translateY(-4px)',
             },
           },
         },
@@ -189,19 +188,17 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
       MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
-            backgroundColor: darkMode ? colors.secondary : '#ffffff',
+            borderRadius: 16,
+            backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+            backgroundImage: 'none',
           },
         },
       },
       MuiAppBar: {
         styleOverrides: {
           root: {
-            backgroundColor: darkMode ? colors.primary : colors.primary,
-            boxShadow: darkMode 
-              ? '0 1px 3px rgba(0, 0, 0, 0.3)'
-              : '0 1px 3px rgba(0, 0, 0, 0.1)',
-            backdropFilter: 'blur(8px)',
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
           },
         },
       },
@@ -209,29 +206,148 @@ export const CustomThemeProvider: React.FC<CustomThemeProviderProps> = ({ childr
         styleOverrides: {
           root: {
             '& .MuiOutlinedInput-root': {
-              borderRadius: 8,
-              backgroundColor: darkMode ? colors.secondary : '#ffffff',
+              borderRadius: 12,
+              backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.03)' : '#ffffff',
               '& fieldset': {
-                borderColor: darkMode ? colors.accent : '#e5e7eb',
+                borderColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0',
+                transition: 'all 0.2s ease',
               },
               '&:hover fieldset': {
-                borderColor: darkMode ? colors.light : colors.accent,
+                borderColor: darkMode ? 'rgba(99, 102, 241, 0.5)' : '#6366f1',
               },
               '&.Mui-focused fieldset': {
-                borderColor: darkMode ? colors.light : colors.primary,
+                borderColor: '#6366f1',
+                borderWidth: 2,
               },
             },
             '& .MuiInputLabel-root': {
-              color: darkMode ? colors.light : colors.accent,
+              color: darkMode ? '#94a3b8' : '#64748b',
             },
             '& .MuiOutlinedInput-input': {
-              color: darkMode ? colors.lightest : colors.primary,
+              color: darkMode ? '#f8fafc' : '#0f172a',
             },
           },
         },
       },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            borderRadius: 9999,
+            fontWeight: 600,
+          },
+          outlined: {
+            borderColor: darkMode ? 'rgba(255, 255, 255, 0.15)' : '#e2e8f0',
+            color: darkMode ? '#94a3b8' : '#475569',
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderColor: darkMode ? 'rgba(255, 255, 255, 0.06)' : '#f1f5f9',
+          },
+          head: {
+            backgroundColor: darkMode ? 'rgba(99, 102, 241, 0.1)' : '#f8fafc',
+            fontWeight: 600,
+            color: darkMode ? '#a5b4fc' : '#4f46e5',
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 20,
+            backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
+          },
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 12,
+            backgroundColor: darkMode ? '#1e293b' : '#ffffff',
+            border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid #e2e8f0',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            color: darkMode ? '#f8fafc' : '#0f172a',
+            '&:hover': {
+              backgroundColor: darkMode ? 'rgba(99, 102, 241, 0.1)' : '#f1f5f9',
+            },
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          icon: {
+            color: darkMode ? '#94a3b8' : '#64748b',
+          },
+        },
+      },
+      MuiLinearProgress: {
+        styleOverrides: {
+          root: {
+            borderRadius: 9999,
+            backgroundColor: darkMode ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0',
+          },
+          bar: {
+            borderRadius: 9999,
+            background: '#4f46e5',
+          },
+        },
+      },
+      MuiCircularProgress: {
+        styleOverrides: {
+          root: {
+            color: '#6366f1',
+          },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          root: {
+            borderRadius: 12,
+          },
+        },
+      },
+      MuiTooltip: {
+        styleOverrides: {
+          tooltip: {
+            borderRadius: 8,
+            backgroundColor: darkMode ? '#334155' : '#1e293b',
+            fontSize: '0.75rem',
+            fontWeight: 500,
+          },
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: {
+            textTransform: 'none',
+            fontWeight: 500,
+            color: darkMode ? '#94a3b8' : '#64748b',
+            '&.Mui-selected': {
+              color: '#6366f1',
+            },
+          },
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: {
+            backgroundColor: '#6366f1',
+            height: 3,
+            borderRadius: 3,
+          },
+        },
+      },
     },
-  });
+  }), [darkMode]);
 
   return (
     <ThemeContext.Provider value={{ darkMode, toggleDarkMode }}>

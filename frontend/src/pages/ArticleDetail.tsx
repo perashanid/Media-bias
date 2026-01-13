@@ -70,7 +70,7 @@ const ArticleDetail: React.FC = () => {
     try {
       setLoading(true);
       await articlesApi.analyzeArticleBias(article.id);
-      
+
       // Refresh article data to get updated bias scores
       await fetchArticle(article.id);
 
@@ -99,7 +99,7 @@ const ArticleDetail: React.FC = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ pt: { xs: 12, md: 14 }, pb: 4, px: { xs: 2, md: 4 } }}>
       {/* Header */}
       <Box sx={{ mb: 3 }}>
         <Button
@@ -110,7 +110,7 @@ const ArticleDetail: React.FC = () => {
         >
           Back to Articles
         </Button>
-        
+
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} md={8}>
             <Typography variant="h4" gutterBottom>
@@ -232,7 +232,18 @@ const ArticleDetail: React.FC = () => {
         {/* Bias Analysis Sidebar */}
         <Grid item xs={12} md={4}>
           {article.bias_scores ? (
-            <BiasScoreCard biasScore={article.bias_scores} showDetails={true} />
+            <Box>
+              <BiasScoreCard biasScore={article.bias_scores} showDetails={true} />
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAnalyzeBias}
+                disabled={loading}
+                sx={{ mt: 2 }}
+              >
+                {loading ? <CircularProgress size={24} /> : 'Re-analyze Bias'}
+              </Button>
+            </Box>
           ) : (
             <Card>
               <CardContent>

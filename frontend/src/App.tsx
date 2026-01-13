@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { Container } from '@mui/material';
+import { Box } from '@mui/material';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
@@ -20,9 +20,9 @@ function App() {
   return (
     <AuthProvider>
       <DashboardProvider>
-        <div className="App">
+        <Box className="App" sx={{ minHeight: '100vh', bgcolor: 'var(--bg-secondary)' }}>
           <Navbar />
-          <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+          <Box component="main">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/dashboard" element={
@@ -39,8 +39,8 @@ function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy" element={<Privacy />} />
             </Routes>
-          </Container>
-        </div>
+          </Box>
+        </Box>
       </DashboardProvider>
     </AuthProvider>
   );

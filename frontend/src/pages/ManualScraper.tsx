@@ -224,7 +224,7 @@ const ManualScraper: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: { xs: 12, md: 14 }, pb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         Manual Article Scraper
       </Typography>
